@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Add Expense - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .form-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.25);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            border: none;
+            padding: 12px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary-custom {
+            background: #6c757d;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .info-box {
+            background: #fff5f5;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box i {
+            color: #ff6b6b;
+            margin-right: 10px;
+        }
+
+        .input-group-text {
+            background: #f8f9fa;
+            border-right: none;
+            font-weight: 600;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .expense-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .expense-type-option {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .expense-type-option:hover {
+            border-color: #ff6b6b;
+            background: #fff5f5;
+        }
+
+        .expense-type-option.selected {
+            border-color: #ff6b6b;
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .expense-type-option i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-danger" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 mb-0" id="loadingText">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 id="pageTitle"><i class="fas fa-plus-circle me-2"></i>Record Expense</h2>
+                    <p class="mb-0 opacity-75">Track property expenses and maintenance costs</p>
+                </div>
+                <a href="expenses.html" class="back-button">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Expenses
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Info Box -->
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Expense Tracking</strong> helps you monitor property costs, manage budgets, 
+                    and generate financial reports for better decision-making.
+                </div>
+
+                <!-- Form Card -->
+                <div class="form-card">
+                    <form id="expenseForm">
+                        <!-- Basic Information -->
+                        <div class="form-section-title">
+                            <i class="fas fa-receipt me-2"></i>Expense Information
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="propertySelect" class="form-label required-field">Property</label>
+                                <select class="form-select" id="propertySelect" required>
+                                    <option value="">Select property...</option>
+                                </select>
+                                <small class="text-muted">Which property is this expense for?</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="unitSelect" class="form-label">Unit (Optional)</label>
+                                <select class="form-select" id="unitSelect">
+                                    <option value="">Select unit (if applicable)...</option>
+                                </select>
+                                <small class="text-muted">Leave blank if for entire property</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label required-field">Expense Type</label>
+                                <div class="expense-type-grid" id="expenseTypeGrid">
+                                    <div class="expense-type-option" data-type="Maintenance">
+                                        <i class="fas fa-tools"></i>
+                                        <div>Maintenance</div>
+                                    </div>
+                                    <div class="expense-type-option" data-type="Utilities">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <div>Utilities</div>
+                                    </div>
+                                    <div class="expense-type-option" data-type="Repairs">
+                                        <i class="fas fa-wrench"></i>
+                                        <div>Repairs</div>
+                                    </div>
+                                    <div class="expense-type-option" data-type="Cleaning">
+                                        <i class="fas fa-broom"></i>
+                                        <div>Cleaning</div>
+                                    </div>
+                                    <div class="expense-type-option" data-type="Security">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <div>Security</div>
+                                    </div>
+                                    <div class="expense-type-option" data-type="Insurance">
+                                        <i class="fas fa-file-contract"></i>
+                                        <div>Insurance</div>
+                                    </div>
+                                    <div class="expense-type-option" data-type="Taxes">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                        <div>Taxes</div>
+                                    </div>
+                                    <div class="expense-type-option" data-type="Other">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                        <div>Other</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="expenseType" required>
+                            </div>
+                        </div>
+
+                        <!-- Amount and Date -->
+                        <div class="form-section-title mt-4">
+                            <i class="fas fa-money-bill-wave me-2"></i>Amount & Date
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="amount" class="form-label required-field">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">KES</span>
+                                    <input type="number" class="form-control" id="amount" 
+                                           placeholder="0.00" step="0.01" min="0" required>
+                                </div>
+                                <small class="text-muted">Enter the expense amount</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expenseDate" class="form-label required-field">Expense Date</label>
+                                <input type="date" class="form-control" id="expenseDate" required>
+                                <small class="text-muted">When was this expense incurred?</small>
+                            </div>
+                        </div>
+
+                        <!-- Vendor Information -->
+                        <div class="form-section-title mt-4">
+                            <i class="fas fa-user-tie me-2"></i>Vendor/Supplier Details
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="vendorName" class="form-label">Vendor Name</label>
+                                <input type="text" class="form-control" id="vendorName" 
+                                       placeholder="e.g., ABC Plumbing Services">
+                                <small class="text-muted">Who provided the service/product?</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="receiptNumber" class="form-label">Receipt/Invoice Number</label>
+                                <input type="text" class="form-control" id="receiptNumber" 
+                                       placeholder="e.g., INV-2025-001">
+                                <small class="text-muted">Reference number for tracking</small>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-section-title mt-4">
+                            <i class="fas fa-sticky-note me-2"></i>Additional Details
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" rows="4" 
+                                          placeholder="Describe the expense (e.g., Fixed leaking pipe in Unit 2A, Paid monthly security guard wages, etc.)"></textarea>
+                                <small class="text-muted">Provide details about this expense</small>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="expenses.html" class="btn btn-secondary-custom">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom" id="submitBtn">
+                                <i class="fas fa-check me-2"></i><span id="submitBtnText">Record Expense</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+    <script>
+        protectPage();
+
+        let properties = [];
+        let units = [];
+        let selectedExpenseType = '';
+        let isEditMode = false;
+        let expenseId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkEditMode();
+            loadProperties();
+            loadUnits();
+            setDefaultDate();
+            setupEventListeners();
+        });
+
+        function checkEditMode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            expenseId = urlParams.get('id');
+            
+            if (expenseId) {
+                isEditMode = true;
+                document.getElementById('pageTitle').innerHTML = 
+                    '<i class="fas fa-edit me-2"></i>Edit Expense';
+                document.getElementById('submitBtnText').textContent = 'Update Expense';
+                loadExpenseData(expenseId);
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('expenseForm').addEventListener('submit', handleSubmit);
+            document.getElementById('propertySelect').addEventListener('change', filterUnitsByProperty);
+            
+            // Expense type selection
+            document.querySelectorAll('.expense-type-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.expense-type-option').forEach(opt => 
+                        opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedExpenseType = this.dataset.type;
+                    document.getElementById('expenseType').value = selectedExpenseType;
+                });
+            });
+        }
+
+        async function loadProperties() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch('http://localhost:5000/api/properties', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load properties');
+
+                const result = await response.json();
+                properties = result.data || [];
+
+                const select = document.getElementById('propertySelect');
+                properties.forEach(property => {
+                    const option = document.createElement('option');
+                    option.value = property.property_id;
+                    option.textContent = property.property_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading properties:', error);
+                alert('Failed to load properties. Please refresh the page.');
+            }
+        }
+
+        async function loadUnits() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch('http://localhost:5000/api/units', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load units');
+
+                const result = await response.json();
+                units = result.data || [];
+            } catch (error) {
+                console.error('Error loading units:', error);
+            }
+        }
+
+        function filterUnitsByProperty() {
+            const propertyId = document.getElementById('propertySelect').value;
+            const unitSelect = document.getElementById('unitSelect');
+            
+            unitSelect.innerHTML = '<option value="">Select unit (if applicable)...</option>';
+            
+            if (!propertyId) return;
+            
+            const filteredUnits = units.filter(u => u.property_id == propertyId);
+            
+            filteredUnits.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.unit_id;
+                option.textContent = `${unit.unit_number}${unit.tenant_name ? ' - ' + unit.tenant_name : ''}`;
+                unitSelect.appendChild(option);
+            });
+        }
+
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('expenseDate').value = today;
+        }
+
+          async function loadExpenseData(id) {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    document.getElementById('loadingText').textContent = 'Loading expense data...';
+
+    try {
+        const token = getAuthToken();
+        const response = await fetch(`http://localhost:5000/api/expenses/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Failed to load expense');
+
+        const result = await response.json();
+        const expense = result.data;
+
+        // Populate form fields
+        document.getElementById('propertySelect').value = expense.property_id || '';
+        document.getElementById('unitSelect').value = expense.unit_id || '';
+        document.getElementById('amount').value = expense.amount;
+        document.getElementById('expenseDate').value = expense.expense_date;
+        document.getElementById('vendorName').value = expense.vendor_name || '';
+        document.getElementById('receiptNumber').value = expense.receipt_number || '';
+        document.getElementById('description').value = expense.description || '';
+
+        // Select expense type - check both 'category' and 'expense_type' for compatibility
+        selectedExpenseType = expense.category || expense.expense_type;  // ✅ Support both
+        document.getElementById('expenseType').value = selectedExpenseType;
+        document.querySelector(`[data-type="${selectedExpenseType}"]`)?.classList.add('selected');
+
+        // Filter units
+        filterUnitsByProperty();
+        // Set unit after filtering
+        setTimeout(() => {
+            document.getElementById('unitSelect').value = expense.unit_id || '';
+        }, 100);
+
+    } catch (error) {
+        console.error('Error loading expense:', error);
+        alert('Failed to load expense data. Redirecting to expenses list.');
+        window.location.href = 'expenses.html';
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            if (!selectedExpenseType) {
+                alert('Please select an expense type');
+                return;
+            }
+
+            const formData = {
+                property_id: parseInt(document.getElementById('propertySelect').value),
+                unit_id: document.getElementById('unitSelect').value ? 
+                    parseInt(document.getElementById('unitSelect').value) : null,
+                expense_type: selectedExpenseType,
+                amount: parseFloat(document.getElementById('amount').value),
+                expense_date: document.getElementById('expenseDate').value,
+                vendor_name: document.getElementById('vendorName').value.trim() || null,
+                receipt_number: document.getElementById('receiptNumber').value.trim() || null,
+                description: document.getElementById('description').value.trim() || null
+            };
+
+            // Validation
+            if (!formData.property_id) {
+                alert('Please select a property');
+                return;
+            }
+
+            if (formData.amount <= 0) {
+                alert('Amount must be greater than zero');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingText').textContent = 
+                isEditMode ? 'Updating expense...' : 'Recording expense...';
+
+            try {
+                const token = getAuthToken();
+                const url = isEditMode 
+                    ? `http://localhost:5000/api/expenses/${expenseId}`
+                    : 'http://localhost:5000/api/expenses';
+                
+                const method = isEditMode ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to save expense');
+                }
+
+                alert(isEditMode 
+                    ? '✅ Expense updated successfully!' 
+                    : '✅ Expense recorded successfully!');
+                window.location.href = 'expenses.html';
+
+            } catch (error) {
+                console.error('Error saving expense:', error);
+                alert('❌ Error: ' + error.message);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

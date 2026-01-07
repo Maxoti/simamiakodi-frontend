@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Requests - SimamiaKodi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fa;
+}
+
+/* Main Content - Remove padding so header can extend full width */
+.main-content {
+    margin-left: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Page Header - Full width */
+.page-header {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 30px 40px;
+    margin: 0;
+    margin-bottom: 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.header-left h1 {
+    font-size: 28px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-left p {
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Content wrapper - Add padding here instead */
+.content-wrapper {
+    padding: 30px 40px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: white;
+    color: #ff6b6b;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-light {
+    background: white;
+    color: #ff6b6b;
+}
+
+.btn-light:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    font-size: 13px;
+}
+
+/* Button group spacing */
+.d-flex {
+    display: flex;
+}
+
+.gap-2 {
+    gap: 10px;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-pending .stat-icon {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.stat-progress .stat-icon {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.stat-completed .stat-icon {
+    background: #d4edda;
+    color: #155724;
+}
+
+.stat-cost .stat-icon {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stat-info h3 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.stat-info p {
+    color: #6c757d;
+    margin: 0;
+}
+
+/* Filters Section */
+.filters-section {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 180px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.filter-select,
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.filter-select:focus,
+.form-control:focus {
+    outline: none;
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.25);
+}
+
+/* Table Container */
+.table-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.table-header {
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.table-header h2 {
+    font-size: 20px;
+    margin: 0;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+.search-box input {
+    padding: 10px 10px 10px 35px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    width: 250px;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.25);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: #f8f9fa;
+}
+
+.data-table th,
+.data-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.data-table th {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.data-table td {
+    font-size: 14px;
+}
+
+.data-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Badges */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-progress {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.badge-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-low {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.badge-medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-high {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-urgent {
+    background: #dc3545;
+    color: white;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    color: #ff6b6b;
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    line-height: 1;
+    padding: 0;
+}
+
+.close-btn:hover {
+    color: #dc3545;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.25);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 20px;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .header-left h1 {
+        font-size: 24px;
+    }
+
+    .content-wrapper {
+        padding: 20px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-section {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Alert Animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+</style>
+</head>
+<body>
+   
+
+    <div class="main-content">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-left">
+                <h1><i class="fas fa-tools"></i> Maintenance Requests</h1>
+                <p>Track and manage property maintenance issues</p>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-dashboard" onclick="window.location.href='../../dashboard.html'">
+                <i class="fas fa-home"></i> Dashboard
+            </button>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> New Request
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card stat-pending">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="pendingCount">0</h3>
+                    <p>Pending</p>
+                </div>
+            </div>
+            <div class="stat-card stat-progress">
+                <div class="stat-icon">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="inProgressCount">0</h3>
+                    <p>In Progress</p>
+                </div>
+            </div>
+            <div class="stat-card stat-completed">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="completedCount">0</h3>
+                    <p>Completed</p>
+                </div>
+            </div>
+            <div class="stat-card stat-cost">
+                <div class="stat-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalCost">KES 0</h3>
+                    <p>Total Cost</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label>Property</label>
+                <select id="filterProperty" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Properties</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="filterStatus" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Priority</label>
+                <select id="filterPriority" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Priorities</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Issue Type</label>
+                <select id="filterIssueType" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Types</option>
+                    <option value="plumbing">Plumbing</option>
+                    <option value="electrical">Electrical</option>
+                    <option value="hvac">HVAC</option>
+                    <option value="appliance">Appliance</option>
+                    <option value="structural">Structural</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                <i class="fas fa-redo"></i> Clear
+            </button>
+        </div>
+
+        <!-- Maintenance Requests Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>All Requests</h2>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search requests..." oninput="applyFilters()">
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Property</th>
+                        <th>Unit</th>
+                        <th>Tenant</th>
+                        <th>Issue Type</th>
+                        <th>Description</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Reported</th>
+                        <th>Cost</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="maintenanceTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="maintenanceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Maintenance Request</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="maintenanceForm">
+                    <input type="hidden" id="requestId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Property *</label>
+                            <select id="property" class="form-control" required onchange="filterUnitsByProperty()">
+                                <option value="">Select Property</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Unit *</label>
+                            <select id="unit" class="form-control" required>
+                                <option value="">Select Unit</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tenant</label>
+                            <select id="tenant" class="form-control">
+                                <option value="">Select Tenant (Optional)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Issue Type *</label>
+                            <select id="issueType" class="form-control" required>
+                                <option value="">Select Type</option>
+                                <option value="plumbing">Plumbing</option>
+                                <option value="electrical">Electrical</option>
+                                <option value="hvac">HVAC</option>
+                                <option value="appliance">Appliance</option>
+                                <option value="structural">Structural</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="description" class="form-control" required placeholder="Describe the issue in detail..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Priority *</label>
+                            <select id="priority" class="form-control" required>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="status" class="form-control">
+                                <option value="pending" selected>Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Reported Date *</label>
+                            <input type="date" id="reportedDate" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Resolved Date</label>
+                            <input type="date" id="resolvedDate" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Assigned To</label>
+                            <input type="text" id="assignedTo" class="form-control" placeholder="Technician name">
+                        </div>
+                        <div class="form-group">
+                            <label>Cost (KES)</label>
+                            <input type="number" id="cost" class="form-control" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="notes" class="form-control" placeholder="Additional notes..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveRequest()">
+                    <i class="fas fa-save"></i> Save Request
+                </button>
+            </div>
+        </div>
+    </div>
+<script src="../../js/MAINTENANCE/maintenance.js"></script>"

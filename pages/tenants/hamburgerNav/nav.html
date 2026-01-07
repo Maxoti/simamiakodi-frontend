@@ -1,0 +1,371 @@
+// ============================================
+// RESPONSIVE NAVIGATION SYSTEM (navbar.js)
+// Includes Hamburger Menu + All Dashboard Features
+// ============================================
+
+function createResponsiveNavigation() {
+    const navHTML = `
+        <style>
+            /* Hide default sidebar on mobile */
+            @media (max-width: 768px) {
+                .sidebar {
+                    display: none !important;
+                }
+                
+                .main-content {
+                    margin-left: 0 !important;
+                    width: 100% !important;
+                }
+            }
+
+            /* Mobile Top Navigation Bar */
+            .mobile-top-nav {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+                color: white;
+                z-index: 1000;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+
+            @media (max-width: 768px) {
+                .mobile-top-nav {
+                    display: flex;
+                }
+
+                body {
+                    padding-top: 60px;
+                }
+
+                .page-header {
+                    margin-top: 0 !important;
+                }
+            }
+
+            .mobile-nav-container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 15px;
+                height: 100%;
+                max-width: 100%;
+            }
+
+            .mobile-hamburger {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 5px;
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 8px;
+                transition: background 0.3s;
+            }
+
+            .mobile-hamburger:active {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .mobile-hamburger span {
+                width: 24px;
+                height: 3px;
+                background: white;
+                border-radius: 3px;
+                transition: all 0.3s;
+            }
+
+            .mobile-hamburger.active span:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+
+            .mobile-hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .mobile-hamburger.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(6px, -6px);
+            }
+
+            .mobile-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 18px;
+                font-weight: bold;
+                color: white;
+            }
+
+            .mobile-logo i {
+                font-size: 24px;
+                color: #3498db;
+            }
+
+            .mobile-user-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #3498db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 14px;
+                cursor: pointer;
+            }
+
+            /* Mobile Sidebar Menu */
+            .mobile-sidebar {
+                position: fixed;
+                top: 60px;
+                left: -280px;
+                width: 280px;
+                height: calc(100vh - 60px);
+                background: #2c3e50;
+                color: white;
+                overflow-y: auto;
+                z-index: 999;
+                transition: left 0.3s ease;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            }
+
+            .mobile-sidebar.active {
+                left: 0;
+            }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 998;
+            }
+
+            .mobile-overlay.active {
+                display: block;
+            }
+
+            /* Mobile User Section */
+            .mobile-user-section {
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.2);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .mobile-user-info-box {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 15px;
+            }
+
+            .mobile-user-avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: #3498db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 18px;
+            }
+
+            .mobile-user-details h3 {
+                font-size: 16px;
+                margin-bottom: 4px;
+                color: white;
+            }
+
+            .mobile-user-details p {
+                font-size: 13px;
+                opacity: 0.8;
+                color: #ecf0f1;
+            }
+
+            .mobile-logout-btn {
+                width: 100%;
+                background: #e74c3c;
+                color: white;
+                border: none;
+                padding: 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-weight: 600;
+                transition: background 0.3s;
+            }
+
+            .mobile-logout-btn:active {
+                background: #c0392b;
+            }
+
+            /* Mobile Menu Sections */
+            .mobile-menu-section {
+                padding: 15px 0;
+            }
+
+            .mobile-section-title {
+                padding: 8px 20px;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                opacity: 0.6;
+                color: #bdc3c7;
+            }
+
+            .mobile-menu-items {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .mobile-menu-items li {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .mobile-menu-items li a {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.3s;
+            }
+
+            .mobile-menu-items li a i {
+                width: 20px;
+                text-align: center;
+                font-size: 16px;
+            }
+
+            .mobile-menu-items li a:active {
+                background: rgba(52, 152, 219, 0.2);
+                padding-left: 30px;
+            }
+
+            .mobile-menu-items li a.active {
+                background: rgba(52, 152, 219, 0.3);
+                border-left: 3px solid #3498db;
+                color: #3498db;
+            }
+
+            /* Smooth scrolling */
+            .mobile-sidebar {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Desktop - Show normal sidebar */
+            @media (min-width: 769px) {
+                .mobile-top-nav,
+                .mobile-sidebar,
+                .mobile-overlay {
+                    display: none !important;
+                }
+            }
+        </style>
+
+        <!-- Mobile Top Navigation -->
+        <div class="mobile-top-nav">
+            <div class="mobile-nav-container">
+                <div class="mobile-hamburger" onclick="toggleMobileSidebar()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                
+                <div class="mobile-logo">
+                    <i class="fas fa-home"></i>
+                    <span>SimamiaKodi</span>
+                </div>
+                
+                <div class="mobile-user-icon" id="mobileUserIcon">U</div>
+            </div>
+        </div>
+
+        <!-- Mobile Sidebar Menu -->
+        <div class="mobile-sidebar" id="mobileSidebar">
+            <!-- User Section -->
+            <div class="mobile-user-section">
+                <div class="mobile-user-info-box">
+                    <div class="mobile-user-avatar" id="mobileSidebarAvatar">U</div>
+                    <div class="mobile-user-details">
+                        <h3 id="mobileSidebarName">User</h3>
+                        <p id="mobileSidebarRole">Admin</p>
+                    </div>
+                </div>
+                <button class="mobile-logout-btn" onclick="handleMobileLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+
+            <!-- Main Navigation -->
+            <div class="mobile-menu-section">
+                <div class="mobile-section-title">Main</div>
+                <ul class="mobile-menu-items">
+                    <li><a href="/dashboard.html" class="mobile-menu-link"><i class="fas fa-home"></i> Dashboard</a></li>
+                </ul>
+            </div>
+
+            <!-- Property Management -->
+            <div class="mobile-menu-section">
+                <div class="mobile-section-title">Property Management</div>
+                <ul class="mobile-menu-items">
+                    <li><a href="/pages/properties/list.html" class="mobile-menu-link"><i class="fas fa-building"></i> Properties</a></li>
+                    <li><a href="/pages/units/list.html" class="mobile-menu-link"><i class="fas fa-door-open"></i> Units</a></li>
+                    <li><a href="/pages/tenants/list.html" class="mobile-menu-link"><i class="fas fa-users"></i> Tenants</a></li>
+                </ul>
+            </div>
+
+            <!-- Financial -->
+            <div class="mobile-menu-section">
+                <div class="mobile-section-title">Financial</div>
+                <ul class="mobile-menu-items">
+                    <li><a href="/pages/payments/list.html" class="mobile-menu-link"><i class="fas fa-money-bill-wave"></i> Payments</a></li>
+                    <li><a href="/pages/payment-plans/list.html" class="mobile-menu-link"><i class="fas fa-file-invoice"></i> Payment Plans</a></li>
+                    <li><a href="/pages/expenses/list.html" class="mobile-menu-link"><i class="fas fa-receipt"></i> Expenses</a></li>
+                    <li><a href="/pages/utilities/list.html" class="mobile-menu-link"><i class="fas fa-plug"></i> Utilities</a></li>
+                </ul>
+            </div>
+
+            <!-- Operations -->
+            <div class="mobile-menu-section">
+                <div class="mobile-section-title">Operations</div>
+                <ul class="mobile-menu-items">
+                    <li><a href="/pages/maintenance/list.html" class="mobile-menu-link"><i class="fas fa-tools"></i> Maintenance</a></li>
+                    <li><a href="/pages/agents/list.html" class="mobile-menu-link"><i class="fas fa-user-tie"></i> Agents</a></li>
+                    <li><a href="/pages/caretakers/list.html" class="mobile-menu-link"><i class="fas fa-user-shield"></i> Caretakers</a></li>
+                </ul>
+            </div>
+
+            <!-- System -->
+            <div class="mobile-menu-section">
+                <div class="mobile-section-title">System</div>
+                <ul class="mobile-menu-items">
+                    <li><a href="/pages/reports/list.html" class="mobile-menu-link"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Overlay -->
+        <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileSidebar()"></div>
+    `;
+<script src="./js/HAMBURGER-NAV/nav.js"></script>
+    </body>
+</html>
+   

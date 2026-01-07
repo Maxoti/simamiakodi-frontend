@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
+        .main-content {
+            padding: 0;
+            width: 100%;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header-left p {
+            opacity: 0.9;
+        }
+
+        .content-wrapper {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #3182ce;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-agents .stat-icon {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stat-active .stat-icon {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stat-commission .stat-icon {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .stat-rate .stat-icon {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stat-info h3 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .stat-info p {
+            color: #6c757d;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .filter-select,
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .filter-select:focus,
+        .form-control:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.25);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .table-header h2 {
+            font-size: 20px;
+        }
+
+        .search-box input {
+            padding: 10px 10px 10px 35px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            width: 250px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: #f8f9fa;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .data-table th {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            color: #3182ce;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-section {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>👥 Agent Management</h1>
+            <p>Manage property agents and track commissions</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="../../dashboard.html" class="btn btn-success">
+                <i class="fas fa-home me-2"></i>Dashboard
+            </a>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus me-2"></i>Add Agent
+            </button>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div id="alertContainer"></div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card stat-agents">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3 id="totalAgents">0</h3>
+                        <p>Total Agents</p>
+                    </div>
+                </div>
+                <div class="stat-card stat-active">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-info">
+                        <h3 id="activeAgents">0</h3>
+                        <p>Active</p>
+                    </div>
+                </div>
+                <div class="stat-card stat-commission">
+                    <div class="stat-icon"></div>
+                    <div class="stat-info">
+                        <h3 id="totalCommissions">KES 0</h3>
+                        <p>Total Commissions</p>
+                    </div>
+                </div>
+                <div class="stat-card stat-rate">
+                    <div class="stat-icon">%</div>
+                    <div class="stat-info">
+                        <h3 id="avgRate">0%</h3>
+                        <p>Avg Commission Rate</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select class="filter-select" id="statusFilter" onchange="filterAgents()">
+                        <option value="">All Status</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-secondary" onclick="clearFilters()"> Clear</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>All Agents</h2>
+                    <div class="search-box">
+                        <input type="text" placeholder="Search agents..." id="searchInput" onkeyup="searchAgents()">
+                    </div>
+                </div>
+                <div id="tableContent">
+                    <div class="loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Agent Modal -->
+    <div class="modal" id="agentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Agent</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="agentForm" onsubmit="saveAgent(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" class="form-control" id="full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone *</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="form-group">
+                            <label>ID Number</label>
+                            <input type="text" class="form-control" id="id_number">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Commission Rate (%) *</label>
+                            <input type="number" class="form-control" id="commission_rate" step="0.1" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select class="form-control" id="is_active">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-success" onclick="document.getElementById('agentForm').requestSubmit()">
+                    <span id="saveButtonText">Save Agent</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let agents = [];
+        let currentAgentId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAgents();
+        });
+
+        // Show Alert
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        // Load Agents
+        async function loadAgents() {
+            try {
+                const response = await fetch(`${API_URL}/agents`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    agents = result.data;
+                    updateTable();
+                    updateStats();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('Error loading agents:', error);
+                document.getElementById('tableContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Error Loading Data</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Update Table
+        function updateTable() {
+            const tableContent = document.getElementById('tableContent');
+            
+            if (agents.length === 0) {
+                tableContent.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>Contact</th>
+                                <th>ID Number</th>
+                                <th>Commission Rate</th>
+                                <th>Total Earned</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">👤</div>
+                                        <h3>No Agents Found</h3>
+                                        <p>Click "Add Agent" to create your first agent profile</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                return;
+            }
+
+            const rows = agents.map(agent => `
+                <tr>
+                    <td><strong>${agent.full_name}</strong></td>
+                    <td>
+                        <div>${agent.phone}</div>
+                        ${agent.email ? `<small style="color: #6c757d;">${agent.email}</small>` : ''}
+                    </td>
+                    <td>${agent.id_number || 'N/A'}</td>
+                    <td><strong>${agent.commission_rate}%</strong></td>
+                    <td><strong>KES ${parseFloat(agent.total_earned || 0).toLocaleString()}</strong></td>
+                    <td>
+                        <span class="badge badge-${agent.is_active ? 'active' : 'inactive'}">
+                            ${agent.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewAgent(${agent.agent_id})">View</button>
+                        <button class="btn btn-warning btn-sm" onclick="editAgent(${agent.agent_id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteAgent(${agent.agent_id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            tableContent.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Contact</th>
+                            <th>ID Number</th>
+                            <th>Commission Rate</th>
+                            <th>Total Earned</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        // Update Stats
+        function updateStats() {
+            const total = agents.length;
+            const active = agents.filter(a => a.is_active).length;
+            const totalCommissions = agents.reduce((sum, a) => sum + parseFloat(a.total_earned || 0), 0);
+            const avgRate = total > 0 
+                ? (agents.reduce((sum, a) => sum + parseFloat(a.commission_rate), 0) / total).toFixed(1)
+                : 0;
+
+            document.getElementById('totalAgents').textContent = total;
+            document.getElementById('activeAgents').textContent = active;
+            document.getElementById('totalCommissions').textContent = `KES ${totalCommissions.toLocaleString()}`;
+            document.getElementById('avgRate').textContent = `${avgRate}%`;
+        }
+
+        // Open Modal
+        function openAddModal() {
+            currentAgentId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Agent';
+            document.getElementById('saveButtonText').textContent = 'Save Agent';
+            document.getElementById('agentForm').reset();
+            document.getElementById('agentModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('agentModal').classList.remove('show');
+            currentAgentId = null;
+        }
+
+       
+        // Save Agent
+        async function saveAgent(e) {
+            e.preventDefault();
+            
+            const formData = {
+                full_name: document.getElementById('full_name').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value || null,
+                id_number: document.getElementById('id_number').value || null,
+                commission_rate: parseFloat(document.getElementById('commission_rate').value),
+                is_active: document.getElementById('is_active').value === 'true'
+            };
+
+            try {
+                const url = currentAgentId 
+                    ? `${API_URL}/agents/${currentAgentId}`
+                    : `${API_URL}/agents`;
+                
+                const method = currentAgentId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message);
+                    closeModal();
+                    loadAgents();
+                } else {
+                    // Show detailed error
+                    const errorMsg = result.error || result.errors?.join(', ') || 'Unknown error';
+                    showAlert(errorMsg, 'error');
+                    console.error('Backend error:', result);
+                }
+            } catch (error) {
+                console.error('Full error:', error);
+                showAlert('Error saving agent: ' + error.message, 'error');
+            }
+        }
+        // Edit Agent
+        async function editAgent(id) {
+            try {
+                const response = await fetch(`${API_URL}/agents/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const agent = result.data;
+                    currentAgentId = id;
+                    
+                    document.getElementById('modalTitle').textContent = 'Edit Agent';
+                    document.getElementById('saveButtonText').textContent = 'Update Agent';
+                    
+                    document.getElementById('full_name').value = agent.full_name;
+                    document.getElementById('phone').value = agent.phone;
+                    document.getElementById('email').value = agent.email || '';
+                    document.getElementById('id_number').value = agent.id_number || '';
+                    document.getElementById('commission_rate').value = agent.commission_rate;
+                    document.getElementById('is_active').value = agent.is_active ? 'true' : 'false';
+                    
+                    document.getElementById('agentModal').classList.add('show');
+                }
+            } catch (error) {
+                showAlert('Error loading agent: ' + error.message, 'error');
+            }
+        }
+
+        // View Agent
+        async function viewAgent(id) {
+            try {
+                const response = await fetch(`${API_URL}/agents/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const agent = result.data;
+                    const details = `
+Agent Details
+
+Name: ${agent.full_name}
+Phone: ${agent.phone}
+Email: ${agent.email || 'N/A'}
+ID Number: ${agent.id_number || 'N/A'}
+Commission Rate: ${agent.commission_rate}%
+Total Earned: KES ${parseFloat(agent.total_earned || 0).toLocaleString()}
+Status: ${agent.is_active ? 'Active' : 'Inactive'}
+Created: ${new Date(agent.created_at).toLocaleDateString()}
+                    `;
+                    alert(details);
+                }
+            } catch (error) {
+                showAlert('Error loading agent: ' + error.message, 'error');
+            }
+        }
+
+        // Delete Agent
+        async function deleteAgent(id) {
+            if (!confirm('Are you sure you want to delete this agent?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/agents/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message);
+                    loadAgents();
+                } else {
+                    showAlert(result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Error deleting agent: ' + error.message, 'error');
+            }
+        }
+
+        // Search
+        function searchAgents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = agents.filter(agent => 
+                agent.full_name.toLowerCase().includes(searchTerm) ||
+                agent.phone.includes(searchTerm) ||
+                (agent.email && agent.email.toLowerCase().includes(searchTerm)) ||
+                (agent.id_number && agent.id_number.includes(searchTerm))
+            );
+            displayFiltered(filtered);
+        }
+
+        // Filter
+        function filterAgents() {
+            const status = document.getElementById('statusFilter').value;
+            
+            let filtered = agents;
+            
+            if (status !== '') {
+                filtered = filtered.filter(agent => agent.is_active === (status === 'true'));
+            }
+            
+            displayFiltered(filtered);
+        }
+
+        function displayFiltered(filtered) {
+            const temp = agents;
+            agents = filtered;
+            updateTable();
+            agents = temp;
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            updateTable();
+        }
+    </script>
+</body>
+</html>

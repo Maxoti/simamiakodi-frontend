@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            height: 100%;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stats-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 10px 0 5px 0;
+            color: #198754;
+        }
+
+        .stats-label {
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .search-filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+        }
+
+        .payment-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #198754;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .payment-card:hover {
+            border-color: #198754;
+            box-shadow: 0 5px 20px rgba(25, 135, 84, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .payment-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #198754;
+        }
+
+        .payment-date {
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .payment-tenant {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+
+        .payment-details {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .detail-item i {
+            color: #198754;
+        }
+
+        .payment-method-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .method-mpesa {
+            background: #d1f4e0;
+            color: #0f6938;
+        }
+
+        .method-cash {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .method-bank {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .method-other {
+            background: #e2e3e5;
+            color: #41464b;
+        }
+
+        .mpesa-code {
+            background: #f8f9fa;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #198754;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .btn-view {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .btn-view:hover {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #fff4e5;
+            color: #ff8c00;
+        }
+
+        .btn-edit:hover {
+            background: #ff8c00;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ffe5e5;
+            color: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .month-badge {
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .payment-card {
+                padding: 15px;
+            }
+
+            .payment-details {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-money-bill-wave me-2"></i>Payments</h2>
+                    <p class="mb-0 opacity-75">Track rent payments and transactions</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="../../dashboard.html" class="back-button">
+                        <i class="fas fa-home me-2"></i>Dashboard
+                    </a>
+                    <a href="make-payment.html" class="btn btn-light">
+                        <i class="fas fa-plus me-2"></i>Record Payment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        <!-- Stats Cards -->
+        <div class="row mb-4" id="statsSection">
+            <div class="col-md-3 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon" style="background: #d1f4e0; color: #198754;">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stats-number" id="totalPayments">KES 0</div>
+                    <div class="stats-label">Total Collected</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon" style="background: #e7f3ff; color: #0066cc;">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stats-number" id="monthlyPayments">KES 0</div>
+                    <div class="stats-label">This Month</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon" style="background: #fff3cd; color: #856404;">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="stats-number" id="paymentCount">0</div>
+                    <div class="stats-label">Total Transactions</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon" style="background: #d1f4e0; color: #198754;">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="stats-number" id="mpesaPercentage">0%</div>
+                    <div class="stats-label">M-Pesa Payments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Card -->
+        <div class="content-card">
+            <!-- Search and Filter Section -->
+            <div class="search-filter-section">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Search by tenant, M-Pesa code, or reference...">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="propertyFilter">
+                            <option value="">All Properties</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="methodFilter">
+                            <option value="">All Methods</option>
+                            <option value="M-Pesa">M-Pesa</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="month" class="form-control" id="monthFilter" 
+                               placeholder="Filter by month">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100" id="clearFilters">
+                            <i class="fas fa-redo me-2"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Info -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <span class="text-muted" id="resultsInfo">Loading...</span>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" id="sortSelect" style="width: auto;">
+                        <option value="date_desc">Date (Newest First)</option>
+                        <option value="date_asc">Date (Oldest First)</option>
+                        <option value="amount_high">Amount (High-Low)</option>
+                        <option value="amount_low">Amount (Low-High)</option>
+                        <option value="tenant">Tenant Name</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-spinner">
+                <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading payments...</p>
+            </div>
+
+            <!-- Payments List -->
+            <div id="paymentsList"></div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h4>No Payments Found</h4>
+                <p class="text-muted">Start by recording your first payment or adjust your filters.</p>
+                <a href="make-payment.html" class="btn btn-primary-custom mt-3">
+                    <i class="fas fa-plus me-2"></i>Record First Payment
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this payment record?</p>
+                    <p class="text-muted mb-0">
+                        <strong id="deletePaymentInfo"></strong><br>
+                        <small>This action cannot be undone.</small>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-2"></i>Delete Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+  <script>
+    let allPayments = [];
+let filteredPayments = [];
+let properties = {};
+let deleteModal;
+let paymentToDelete = null;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Protect page first
+    if (!protectPage()) {
+        return;
+    }
+    
+    deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    loadProperties();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('searchInput').addEventListener('input', filterPayments);
+    document.getElementById('propertyFilter').addEventListener('change', filterPayments);
+    document.getElementById('methodFilter').addEventListener('change', filterPayments);
+    document.getElementById('monthFilter').addEventListener('change', filterPayments);
+    document.getElementById('sortSelect').addEventListener('change', sortAndDisplayPayments);
+    document.getElementById('clearFilters').addEventListener('click', clearFilters);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+}
+
+// Load properties for filter
+async function loadProperties() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch('http://localhost:5000/api/properties', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) return;
+
+        const result = await response.json();
+        const propertiesArray = result.data || [];
+
+        // Create property lookup map
+        propertiesArray.forEach(prop => {
+            properties[prop.property_id] = prop.property_name;
+        });
+
+        // Populate filter dropdown
+        const select = document.getElementById('propertyFilter');
+        propertiesArray.forEach(property => {
+            const option = document.createElement('option');
+            option.value = property.property_id;
+            option.textContent = property.property_name;
+            select.appendChild(option);
+        });
+
+        // After properties are loaded, load payments
+        loadPayments();
+    } catch (error) {
+        console.error('Error loading properties:', error);
+        loadPayments(); // Load payments anyway even if properties fail
+    }
+}
+
+// Load payments from API
+async function loadPayments() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch('http://localhost:5000/api/payments', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to load payments');
+
+        const result = await response.json();
+        allPayments = result.data || [];
+        
+        // Add property names to payments
+        allPayments = allPayments.map(payment => ({
+            ...payment,
+            property_name: properties[payment.property_id] || 'Unknown Property'
+        }));
+        
+        filteredPayments = [...allPayments];
+        
+        updateStats();
+        sortAndDisplayPayments();
+        
+        document.getElementById('loadingState').style.display = 'none';
+    } catch (error) {
+        console.error('Error loading payments:', error);
+        document.getElementById('loadingState').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Failed to load payments. Please refresh the page.
+            </div>
+        `;
+    }
+}
+
+// Update statistics
+function updateStats() {
+    const total = allPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+    
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const monthlyTotal = allPayments
+        .filter(p => p.payment_month === currentMonth || 
+                   (p.payment_date && p.payment_date.startsWith(currentMonth)))
+        .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+    
+    const count = allPayments.length;
+    
+    const mpesaCount = allPayments.filter(p => 
+        p.payment_method && p.payment_method.toLowerCase().includes('mpesa')
+    ).length;
+    const mpesaPercentage = count > 0 ? Math.round((mpesaCount / count) * 100) : 0;
+
+    document.getElementById('totalPayments').textContent = `KES ${formatMoney(total)}`;
+    document.getElementById('monthlyPayments').textContent = `KES ${formatMoney(monthlyTotal)}`;
+    document.getElementById('paymentCount').textContent = count;
+    document.getElementById('mpesaPercentage').textContent = mpesaPercentage + '%';
+}
+
+// Filter payments
+function filterPayments() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const propertyId = document.getElementById('propertyFilter').value;
+    const method = document.getElementById('methodFilter').value;
+    const month = document.getElementById('monthFilter').value;
+
+    filteredPayments = allPayments.filter(payment => {
+        const matchesSearch = !searchTerm || 
+            (payment.tenant_name && payment.tenant_name.toLowerCase().includes(searchTerm)) ||
+            (payment.mpesa_code && payment.mpesa_code.toLowerCase().includes(searchTerm)) ||
+            (payment.reference_number && payment.reference_number.toLowerCase().includes(searchTerm)) ||
+            (payment.unit_number && payment.unit_number.toLowerCase().includes(searchTerm));
+
+        const matchesProperty = !propertyId || payment.property_id == propertyId;
+        const matchesMethod = !method || payment.payment_method === method;
+        const matchesMonth = !month || 
+            payment.payment_month === month || 
+            (payment.payment_date && payment.payment_date.startsWith(month));
+
+        return matchesSearch && matchesProperty && matchesMethod && matchesMonth;
+    });
+
+    sortAndDisplayPayments();
+}
+
+// Sort and display payments
+function sortAndDisplayPayments() {
+    const sortBy = document.getElementById('sortSelect').value;
+
+    filteredPayments.sort((a, b) => {
+        switch(sortBy) {
+            case 'date_desc':
+                return new Date(b.payment_date) - new Date(a.payment_date);
+            case 'date_asc':
+                return new Date(a.payment_date) - new Date(b.payment_date);
+            case 'amount_high':
+                return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
+            case 'amount_low':
+                return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
+            case 'tenant':
+                return (a.tenant_name || '').localeCompare(b.tenant_name || '');
+            default:
+                return 0;
+        }
+    });
+
+    displayPayments();
+}
+
+// Display payments
+function displayPayments() {
+    const container = document.getElementById('paymentsList');
+    const emptyState = document.getElementById('emptyState');
+
+    const totalAmount = filteredPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+    document.getElementById('resultsInfo').textContent = 
+        `Showing ${filteredPayments.length} of ${allPayments.length} payments (Total: KES ${formatMoney(totalAmount)})`;
+
+    if (filteredPayments.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    
+    container.innerHTML = filteredPayments.map(payment => {
+        const methodClass = getMethodClass(payment.payment_method);
+        
+        return `
+            <div class="payment-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="payment-amount">KES ${formatMoney(payment.amount)}</div>
+                            <span class="payment-method-badge ${methodClass}">
+                                ${payment.payment_method || 'N/A'}
+                            </span>
+                            ${payment.payment_month ? `
+                            <span class="month-badge">
+                                <i class="fas fa-calendar-alt me-1"></i>${formatMonth(payment.payment_month)}
+                            </span>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="payment-tenant">${payment.tenant_name || 'Unknown Tenant'}</div>
+                        
+                        <div class="payment-details">
+                            <div class="detail-item">
+                                <i class="fas fa-building"></i>
+                                <span>${payment.property_name || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-door-open"></i>
+                                <span>Unit ${payment.unit_number || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>${formatDate(payment.payment_date)}</span>
+                            </div>
+                            ${payment.mpesa_code ? `
+                            <div class="detail-item">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span class="mpesa-code">${payment.mpesa_code}</span>
+                            </div>
+                            ` : ''}
+                            ${payment.reference_number ? `
+                            <div class="detail-item">
+                                <i class="fas fa-hashtag"></i>
+                                <span>${payment.reference_number}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${payment.notes ? `
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-sticky-note me-1"></i>${payment.notes}
+                            </small>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" onclick="viewPayment(${payment.payment_id})" 
+                                title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="deletePayment(${payment.payment_id}, '${payment.tenant_name}', ${payment.amount})" 
+                                title="Delete Payment">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Get payment method CSS class
+function getMethodClass(method) {
+    if (!method) return 'method-other';
+    const lower = method.toLowerCase();
+    if (lower.includes('mpesa') || lower.includes('m-pesa')) return 'method-mpesa';
+    if (lower.includes('cash')) return 'method-cash';
+    if (lower.includes('bank')) return 'method-bank';
+    return 'method-other';
+}
+
+// Format money
+function formatMoney(amount) {
+    if (!amount) return '0.00';
+    return parseFloat(amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// Format date
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+// Format month
+function formatMonth(monthString) {
+    if (!monthString) return 'N/A';
+    const [year, month] = monthString.split('-');
+    const date = new Date(year, parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short'
+    });
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('propertyFilter').value = '';
+    document.getElementById('methodFilter').value = '';
+    document.getElementById('monthFilter').value = '';
+    document.getElementById('sortSelect').value = 'date_desc';
+    filterPayments();
+}
+
+// View payment details
+function viewPayment(id) {
+    window.location.href = `details.html?id=${id}`;
+}
+
+// Delete payment
+function deletePayment(id, tenantName, amount) {
+    paymentToDelete = id;
+    document.getElementById('deletePaymentInfo').textContent = 
+        `${tenantName} - KES ${formatMoney(amount)}`;
+    deleteModal.show();
+}
+
+// Confirm delete
+async function confirmDelete() {
+    if (!paymentToDelete) return;
+
+    const btn = document.getElementById('confirmDeleteBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`http://localhost:5000/api/payments/${paymentToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            deleteModal.hide();
+            await loadPayments();
+            
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                ✅ Payment deleted successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
+            
+            setTimeout(() => alert.remove(), 3000);
+        } else {
+            throw new Error('Failed to delete payment');
+        }
+    } catch (error) {
+        console.error('Error deleting payment:', error);
+        alert('Failed to delete payment. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        paymentToDelete = null;
+    }
+}
+  </script>
+</body>
+</html>

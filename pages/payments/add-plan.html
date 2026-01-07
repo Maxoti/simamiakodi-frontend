@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Payment Plan - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #6f42c1 0%, #9d4edd 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .form-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #6f42c1;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #6f42c1;
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #6f42c1 0%, #9d4edd 100%);
+            border: none;
+            padding: 12px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
+        }
+
+        .btn-secondary-custom {
+            background: #6c757d;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .info-box {
+            background: #f0e6ff;
+            border-left: 4px solid #6f42c1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box i {
+            color: #6f42c1;
+            margin-right: 10px;
+        }
+
+        .calculation-preview {
+            background: #f8f9fa;
+            border: 2px dashed #6f42c1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .calculation-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .calculation-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 18px;
+            color: #6f42c1;
+            padding-top: 15px;
+            margin-top: 10px;
+            border-top: 2px solid #6f42c1;
+        }
+
+        .input-group-text {
+            background: #f8f9fa;
+            border-right: none;
+            font-weight: 600;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 mb-0">Creating payment plan...</p>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-calendar-plus me-2"></i>Create Payment Plan</h2>
+                    <p class="mb-0 opacity-75">Set up a new installment payment arrangement</p>
+                </div>
+                <a href="plans.html" class="back-button">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Plans
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Info Box -->
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Payment Plans</strong> allow tenants to pay their rent in installments over time.
+                    Set the total amount, installment amount, and frequency to create a structured payment schedule.
+                </div>
+
+                <!-- Form Card -->
+                <div class="form-card">
+                    <form id="paymentPlanForm">
+                        <!-- Tenant Selection Section -->
+                        <div class="form-section-title">
+                            <i class="fas fa-user me-2"></i>Tenant Information
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label for="tenantSelect" class="form-label required-field">Select Tenant</label>
+                                <select class="form-select" id="tenantSelect" required>
+                                    <option value="">Choose tenant...</option>
+                                </select>
+                                <small class="text-muted">Choose the tenant for this payment plan</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="propertySelect" class="form-label">Property</label>
+                                <select class="form-select" id="propertySelect">
+                                    <option value="">Select property...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="unitSelect" class="form-label">Unit</label>
+                                <select class="form-select" id="unitSelect">
+                                    <option value="">Select unit...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Amount Section -->
+                        <div class="form-section-title mt-4">
+                            <i class="fas fa-money-bill-wave me-2"></i>Payment Details
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="totalAmount" class="form-label required-field">Total Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">KES</span>
+                                    <input type="number" class="form-control" id="totalAmount" 
+                                           placeholder="50000" step="0.01" min="0" required>
+                                </div>
+                                <small class="text-muted">Total amount to be paid</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="installmentAmount" class="form-label required-field">Installment Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">KES</span>
+                                    <input type="number" class="form-control" id="installmentAmount" 
+                                           placeholder="5000" step="0.01" min="0" required>
+                                </div>
+                                <small class="text-muted">Amount per installment</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="frequency" class="form-label required-field">Payment Frequency</label>
+                                <select class="form-select" id="frequency" required>
+                                    <option value="">Choose frequency...</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="biweekly">Bi-weekly (Every 2 weeks)</option>
+                                    <option value="monthly" selected>Monthly</option>
+                                    <option value="quarterly">Quarterly (Every 3 months)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="startDate" class="form-label required-field">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" required>
+                                <small class="text-muted">When the plan begins</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="endDate" class="form-label">End Date (Optional)</label>
+                                <input type="date" class="form-control" id="endDate">
+                                <small class="text-muted">Expected completion date</small>
+                            </div>
+                        </div>
+
+                        <!-- Description Section -->
+                        <div class="form-section-title mt-4">
+                            <i class="fas fa-sticky-note me-2"></i>Additional Information
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label for="description" class="form-label">Description/Notes</label>
+                                <textarea class="form-control" id="description" rows="3" 
+                                          placeholder="E.g., Rent arrears payment plan, Deposit installment, etc."></textarea>
+                                <small class="text-muted">Add any relevant notes about this payment plan</small>
+                            </div>
+                        </div>
+
+                        <!-- Calculation Preview -->
+                        <div class="calculation-preview">
+                            <h6 class="mb-3"><i class="fas fa-calculator me-2"></i>Payment Plan Summary</h6>
+                            <div class="calculation-item">
+                                <span>Total Amount:</span>
+                                <span id="previewTotal">KES 0.00</span>
+                            </div>
+                            <div class="calculation-item">
+                                <span>Installment Amount:</span>
+                                <span id="previewInstallment">KES 0.00</span>
+                            </div>
+                            <div class="calculation-item">
+                                <span>Payment Frequency:</span>
+                                <span id="previewFrequency">-</span>
+                            </div>
+                            <div class="calculation-item">
+                                <span>Estimated Installments:</span>
+                                <span id="previewInstallments">0</span>
+                            </div>
+                            <div class="calculation-item">
+                                <span>Remaining Balance:</span>
+                                <span id="previewBalance">KES 0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="plans.html" class="btn btn-secondary-custom">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="fas fa-check me-2"></i>Create Payment Plan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+    <script>
+        // Protect this page
+        protectPage();
+
+        let tenants = [];
+        let properties = [];
+        let units = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTenants();
+            loadProperties();
+            loadUnits();
+            setDefaultDate();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('totalAmount').addEventListener('input', updateCalculations);
+            document.getElementById('installmentAmount').addEventListener('input', updateCalculations);
+            document.getElementById('frequency').addEventListener('change', updateCalculations);
+            document.getElementById('paymentPlanForm').addEventListener('submit', handleSubmit);
+            
+            // Update property when tenant is selected
+            document.getElementById('tenantSelect').addEventListener('change', function() {
+                const selectedTenant = tenants.find(t => t.tenant_id == this.value);
+                if (selectedTenant) {
+                    document.getElementById('propertySelect').value = selectedTenant.property_id || '';
+                    document.getElementById('unitSelect').value = selectedTenant.unit_id || '';
+                }
+            });
+        }
+
+        // Load tenants
+        async function loadTenants() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch('http://localhost:5000/api/tenants', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load tenants');
+
+                const result = await response.json();
+                tenants = result.data || [];
+
+                const select = document.getElementById('tenantSelect');
+                tenants.forEach(tenant => {
+                    const option = document.createElement('option');
+                    option.value = tenant.tenant_id;
+                    option.textContent = `${tenant.full_name} - ${tenant.phone}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading tenants:', error);
+                alert('Failed to load tenants. Please refresh the page.');
+            }
+        }
+
+        // Load properties
+        async function loadProperties() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch('http://localhost:5000/api/properties', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load properties');
+
+                const result = await response.json();
+                properties = result.data || [];
+
+                const select = document.getElementById('propertySelect');
+                properties.forEach(property => {
+                    const option = document.createElement('option');
+                    option.value = property.property_id;
+                    option.textContent = property.property_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading properties:', error);
+            }
+        }
+
+        // Load units
+        async function loadUnits() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch('http://localhost:5000/api/units', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load units');
+
+                const result = await response.json();
+                units = result.data || [];
+
+                const select = document.getElementById('unitSelect');
+                units.forEach(unit => {
+                    const option = document.createElement('option');
+                    option.value = unit.unit_id;
+                    option.textContent = `${unit.unit_number} - ${unit.property_name || ''}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading units:', error);
+            }
+        }
+
+        // Set default date to today
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+        }
+
+        // Update calculations
+        function updateCalculations() {
+            const total = parseFloat(document.getElementById('totalAmount').value) || 0;
+            const installment = parseFloat(document.getElementById('installmentAmount').value) || 0;
+            const frequency = document.getElementById('frequency').value;
+
+            // Update preview
+            document.getElementById('previewTotal').textContent = `KES ${formatMoney(total)}`;
+            document.getElementById('previewInstallment').textContent = `KES ${formatMoney(installment)}`;
+            document.getElementById('previewFrequency').textContent = frequency ? capitalizeFirst(frequency) : '-';
+            
+            if (installment > 0) {
+                const numInstallments = Math.ceil(total / installment);
+                document.getElementById('previewInstallments').textContent = numInstallments;
+                document.getElementById('previewBalance').textContent = `KES ${formatMoney(total)}`;
+            } else {
+                document.getElementById('previewInstallments').textContent = '0';
+                document.getElementById('previewBalance').textContent = `KES ${formatMoney(total)}`;
+            }
+        }
+
+        // Handle form submission
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const formData = {
+                tenant_id: parseInt(document.getElementById('tenantSelect').value),
+                property_id: document.getElementById('propertySelect').value ? 
+                    parseInt(document.getElementById('propertySelect').value) : null,
+                unit_id: document.getElementById('unitSelect').value ? 
+                    parseInt(document.getElementById('unitSelect').value) : null,
+                total_amount: parseFloat(document.getElementById('totalAmount').value),
+                installment_amount: parseFloat(document.getElementById('installmentAmount').value),
+                installment_frequency: document.getElementById('frequency').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value || null,
+                description: document.getElementById('description').value.trim() || null
+            };
+
+            // Validation
+            if (!formData.tenant_id) {
+                alert('Please select a tenant');
+                return;
+            }
+
+            if (formData.installment_amount > formData.total_amount) {
+                alert('Installment amount cannot be greater than total amount');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            try {
+                const token = getAuthToken();
+                const response = await fetch('http://localhost:5000/api/payment-plans', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to create payment plan');
+                }
+
+                alert('✅ Payment plan created successfully!');
+                window.location.href = 'plans.html';
+
+            } catch (error) {
+                console.error('Error creating payment plan:', error);
+                alert('❌ Error: ' + error.message);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        // Format money
+        function formatMoney(amount) {
+            if (!amount) return '0.00';
+            return parseFloat(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Capitalize first letter
+        function capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+    </script>
+</body>
+</html>

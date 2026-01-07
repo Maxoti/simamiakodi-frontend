@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Unit - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #0d6efd;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+        }
+
+        .btn-primary-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .unit-id-badge {
+            background: #e7f1ff;
+            color: #0d6efd;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-edit me-2"></i>Edit Unit</h2>
+                    <p class="mb-0 opacity-75">Update unit information</p>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="unit-id-badge" id="unitIdBadge"></span>
+                    <a href="list.html" class="back-button">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="container pb-5">
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading unit details...</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card" id="formCard" style="display: none;">
+            <form id="edit-unit-form">
+                <!-- Basic Information -->
+                <h4 class="section-title">
+                    <i class="fas fa-info-circle"></i> Basic Information
+                </h4>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Property</label>
+                        <select class="form-select" name="property_id" id="propertySelect" required>
+                            <option value="">Select Property</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Unit Number</label>
+                        <input type="text" class="form-control" name="unit_number" 
+                               placeholder="e.g., A101, 2B, etc." required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">House Type</label>
+                        <select class="form-select" name="house_type" required>
+                            <option value="">Select Type</option>
+                            <option value="Bedsitter">Bedsitter</option>
+                            <option value="1 Bedroom">1 Bedroom</option>
+                            <option value="2 Bedroom">2 Bedroom</option>
+                            <option value="3 Bedroom">3 Bedroom</option>
+                            <option value="Studio">Studio</option>
+                            <option value="Penthouse">Penthouse</option>
+                            <option value="Single Room">Single Room</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Floor Number</label>
+                        <input type="number" class="form-control" name="floor_number" 
+                               placeholder="Floor number" min="0">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Bedrooms</label>
+                        <input type="number" class="form-control" name="bedrooms" 
+                               placeholder="Number of bedrooms" min="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Bathrooms</label>
+                        <input type="number" class="form-control" name="bathrooms" 
+                               placeholder="Number of bathrooms" min="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Square Meters</label>
+                        <input type="number" class="form-control" name="square_meters" 
+                               placeholder="e.g., 85" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Financial Information -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-money-bill-wave"></i> Financial Details
+                </h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Monthly Rent (KES)</label>
+                        <input type="number" class="form-control" name="monthly_rent" 
+                               placeholder="0.00" min="0" step="0.01" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Deposit Amount (KES)</label>
+                        <input type="number" class="form-control" name="deposit_amount" 
+                               placeholder="0.00" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-star"></i> Features & Status
+                </h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="has_parking" 
+                                   id="hasParkingSwitch" style="width: 3em; height: 1.5em;">
+                            <label class="form-check-label ms-2" for="hasParkingSwitch">
+                                <strong>Has Parking</strong>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="is_occupied" 
+                                   id="isOccupiedSwitch" style="width: 3em; height: 1.5em;">
+                            <label class="form-check-label ms-2" for="isOccupiedSwitch">
+                                <strong>Unit is Occupied</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary-custom" id="submitBtn">
+                        <i class="fas fa-save me-2"></i>Update Unit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+    <script>
+        // Protect this page
+        protectPage();
+
+        let unitId = null;
+
+        // Show alert function
+        function showAlert(message, type = 'danger') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            unitId = urlParams.get('id');
+
+            if (!unitId) {
+                showAlert('❌ No unit ID provided', 'danger');
+                setTimeout(() => {
+                    window.location.href = 'list.html';
+                }, 2000);
+                return;
+            }
+
+            loadProperties();
+            loadUnitData(unitId);
+        });
+
+        // Load properties for dropdown
+        async function loadProperties() {
+            try {
+                const token = getAuthToken();
+                
+                const response = await fetch('http://localhost:5000/api/properties', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load properties');
+
+                const result = await response.json();
+                const properties = result.data || [];
+
+                const select = document.getElementById('propertySelect');
+                properties.forEach(property => {
+                    const option = document.createElement('option');
+                    option.value = property.property_id;
+                    option.textContent = property.property_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading properties:', error);
+                showAlert('❌ Failed to load properties', 'danger');
+            }
+        }
+
+        // Load unit data from API
+        async function loadUnitData(id) {
+            try {
+                const token = getAuthToken();
+                
+                const response = await fetch(`http://localhost:5000/api/units/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unit not found');
+                }
+
+                const result = await response.json();
+                populateForm(result.data);
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('formCard').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading unit:', error);
+                showAlert('❌ Failed to load unit data. Redirecting...', 'danger');
+                setTimeout(() => {
+                    window.location.href = 'list.html';
+                }, 2000);
+            }
+        }
+
+        // Populate form with existing data
+        function populateForm(unit) {
+            document.getElementById('unitIdBadge').textContent = `ID: #${unit.unit_id}`;
+
+            const form = document.getElementById('edit-unit-form');
+
+            form.property_id.value = unit.property_id || '';
+            form.unit_number.value = unit.unit_number || '';
+            form.house_type.value = unit.house_type || '';
+            form.floor_number.value = unit.floor_number || '';
+            form.bedrooms.value = unit.bedrooms || '';
+            form.bathrooms.value = unit.bathrooms || '';
+            form.square_meters.value = unit.square_meters || '';
+            form.monthly_rent.value = unit.monthly_rent || '';
+            form.deposit_amount.value = unit.deposit_amount || '';
+            form.has_parking.checked = unit.has_parking || false;
+            form.is_occupied.checked = unit.is_occupied || false;
+        }
+
+        // Handle form submission
+        document.getElementById('edit-unit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalBtnText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+            
+            try {
+                const formData = new FormData(e.target);
+                
+                const unitData = {
+                    property_id: parseInt(formData.get('property_id')),
+                    unit_number: formData.get('unit_number'),
+                    house_type: formData.get('house_type'),
+                    floor_number: formData.get('floor_number') ? parseInt(formData.get('floor_number')) : null,
+                    bedrooms: formData.get('bedrooms') ? parseInt(formData.get('bedrooms')) : null,
+                    bathrooms: formData.get('bathrooms') ? parseInt(formData.get('bathrooms')) : null,
+                    square_meters: formData.get('square_meters') ? parseFloat(formData.get('square_meters')) : null,
+                    monthly_rent: parseFloat(formData.get('monthly_rent')),
+                    deposit_amount: formData.get('deposit_amount') ? parseFloat(formData.get('deposit_amount')) : null,
+                    has_parking: formData.get('has_parking') === 'on',
+                    is_occupied: formData.get('is_occupied') === 'on'
+                };
+                
+                console.log('Update Data:', unitData);
+                
+                const token = getAuthToken();
+                
+                const response = await fetch(`http://localhost:5000/api/units/${unitId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(unitData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('✅ Unit updated successfully!', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = `details.html?id=${unitId}`;
+                    }, 1500);
+                } else {
+                    showAlert('❌ Error: ' + (result.error || 'Failed to update unit'), 'danger');
+                    
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('❌ Failed to update unit. Please check your connection and try again.', 'danger');
+                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    </script>
+</body>
+</html>

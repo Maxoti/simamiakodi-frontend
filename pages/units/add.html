@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Unit - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #0d6efd;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+        }
+
+        .btn-primary-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-door-open me-2"></i>Add New Unit</h2>
+                    <p class="mb-0 opacity-75">Enter unit details below</p>
+                </div>
+                <a href="list.html" class="back-button">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Units
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="container pb-5">
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <div class="form-card">
+            <form id="add-unit-form">
+                <!-- Property Selection -->
+                <h4 class="section-title">
+                    <i class="fas fa-building"></i> Property Information
+                </h4>
+                
+                <div class="mb-4">
+                    <label class="form-label required-field">Select Property</label>
+                    <select class="form-select" name="property_id" id="propertySelect" required>
+                        <option value="">Choose a property...</option>
+                    </select>
+                    <div class="form-text">Select the property this unit belongs to</div>
+                </div>
+
+                <!-- Unit Details -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-info-circle"></i> Unit Details
+                </h4>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label required-field">Unit Number</label>
+                        <input type="text" class="form-control" name="unit_number" 
+                               placeholder="e.g., 101, A1, G-12" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Floor</label>
+                        <input type="number" class="form-control" name="floor" 
+                               placeholder="Floor number" min="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label required-field">Unit Type</label>
+                        <select class="form-select" name="house_type" required>
+                            <option value="">Select Type</option>
+                            <option value="studio">Studio</option>
+                            <option value="1_bedroom">1 Bedroom</option>
+                            <option value="2_bedroom">2 Bedroom</option>
+                            <option value="3_bedroom">3 Bedroom</option>
+                            <option value="4_bedroom">4 Bedroom</option>
+                            <option value="penthouse">Penthouse</option>
+                            <option value="commercial">Commercial</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Bedrooms</label>
+                        <input type="number" class="form-control" name="bedrooms" 
+                               placeholder="Number of bedrooms" min="0" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Bathrooms</label>
+                        <input type="number" class="form-control" name="bathrooms" 
+                               placeholder="Number of bathrooms" min="0" step="0.5" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Square Feet</label>
+                        <input type="number" class="form-control" name="square_feet" 
+                               placeholder="Total area" min="0">
+                    </div>
+                </div>
+
+                <!-- Rent Information -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-money-bill-wave"></i> Rent Information
+                </h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Monthly Rent (KES)</label>
+                        <input type="number" class="form-control" name="monthly_rent" 
+                               placeholder="Monthly rent" min="0" step="0.01" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Security Deposit (KES)</label>
+                        <input type="number" class="form-control" name="security_deposit" 
+                               placeholder="Security deposit" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-toggle-on"></i> Occupancy Status
+                </h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="is_occupied" id="occupancyStatus">
+                            <option value="false" selected>Vacant</option>
+                            <option value="true">Occupied</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Availability</label>
+                        <select class="form-select" name="status">
+                            <option value="available" selected>Available</option>
+                            <option value="occupied">Occupied</option>
+                            <option value="maintenance">Under Maintenance</option>
+                            <option value="reserved">Reserved</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Features & Amenities -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-star"></i> Features & Amenities
+                </h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Unit Features</label>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="balcony" id="balcony">
+                                <label class="form-check-label" for="balcony">Balcony</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="parking" id="parking">
+                                <label class="form-check-label" for="parking">Parking Space</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="furnished" id="furnished">
+                                <label class="form-check-label" for="furnished">Furnished</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="ac" id="ac">
+                                <label class="form-check-label" for="ac">Air Conditioning</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="heating" id="heating">
+                                <label class="form-check-label" for="heating">Heating</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="washer" id="washer">
+                                <label class="form-check-label" for="washer">Washer/Dryer</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="dishwasher" id="dishwasher">
+                                <label class="form-check-label" for="dishwasher">Dishwasher</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="pet_friendly" id="pet_friendly">
+                                <label class="form-check-label" for="pet_friendly">Pet Friendly</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-file-alt"></i> Additional Information
+                </h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Description / Notes</label>
+                    <textarea class="form-control" name="description" rows="4" 
+                              placeholder="Enter any additional details about this unit..."></textarea>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary-custom" id="submitBtn">
+                        <i class="fas fa-save me-2"></i>Save Unit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+   <!-- Bootstrap JS -->
+
+<script>
+    // Authentication Functions
+    function protectPage() {
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+        
+        if (!token) {
+            window.location.href = '/pages/auth/login.html';
+            return false;
+        }
+        return true;
+    }
+
+    function getAuthToken() {
+        return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    }
+
+    // Protect this page on load
+    if (!protectPage()) {
+        throw new Error('Not authenticated');
+    }
+
+    // Show alert function
+    function showAlert(message, type = 'danger') {
+        const alertContainer = document.getElementById('alertContainer');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        alertContainer.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Load properties on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProperties();
+    });
+
+    // Load properties for dropdown
+    async function loadProperties() {
+        try {
+            const token = getAuthToken();
+            
+            if (!token) {
+                showAlert('Not authenticated. Please log in.', 'danger');
+                setTimeout(() => {
+                    window.location.href = '/pages/auth/login.html';
+                }, 1500);
+                return;
+            }
+            
+            const response = await fetch('http://localhost:5000/api/properties', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load properties');
+            }
+
+            const result = await response.json();
+            const properties = result.data || [];
+
+            const select = document.getElementById('propertySelect');
+            
+            if (properties.length === 0) {
+                select.innerHTML = '<option value="">No properties available</option>';
+                select.disabled = true;
+                showAlert('⚠️ No properties found. Please add a property first.', 'warning');
+                return;
+            }
+
+            // Clear the default option
+            select.innerHTML = '<option value="">Choose a property...</option>';
+
+            properties.forEach(property => {
+                const option = document.createElement('option');
+                option.value = property.property_id;
+                option.textContent = `${property.property_name} (${property.location || 'No location'})`;
+                select.appendChild(option);
+            });
+
+            console.log(`Loaded ${properties.length} properties`);
+        } catch (error) {
+            console.error('Error loading properties:', error);
+            showAlert('❌ Failed to load properties. Please refresh the page.', 'danger');
+        }
+    }
+
+    // Handle form submission
+    document.getElementById('add-unit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const originalBtnText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        
+        try {
+            const formData = new FormData(e.target);
+            
+            // Validate property selection
+            const propertyId = parseInt(formData.get('property_id'));
+            if (!propertyId) {
+                throw new Error('Please select a property');
+            }
+            
+            // Get features as array
+            const features = formData.getAll('features');
+            
+            // Build unit object
+            const unitData = {
+                property_id: propertyId,
+                unit_number: formData.get('unit_number')?.trim(),
+                house_type: formData.get('house_type'),
+                monthly_rent: parseFloat(formData.get('monthly_rent')),
+                floor: formData.get('floor') ? parseInt(formData.get('floor')) : null,
+                bedrooms: parseInt(formData.get('bedrooms')) || 0,
+                bathrooms: parseFloat(formData.get('bathrooms')) || 0,
+                square_feet: formData.get('square_feet') ? parseFloat(formData.get('square_feet')) : null,
+                security_deposit: formData.get('security_deposit') ? parseFloat(formData.get('security_deposit')) : null,
+                is_occupied: formData.get('is_occupied') === 'true',
+                status: formData.get('status') || 'available',
+                features: features.length > 0 ? JSON.stringify(features) : null,
+                description: formData.get('description')?.trim() || null
+            };
+            
+            console.log('Submitting Unit Data:', unitData);
+            
+            // Validate required fields
+            if (!unitData.unit_number) {
+                throw new Error('Unit number is required');
+            }
+            if (!unitData.house_type) {
+                throw new Error('Unit type is required');
+            }
+            if (!unitData.monthly_rent || unitData.monthly_rent <= 0) {
+                throw new Error('Valid monthly rent is required');
+            }
+            
+            // Submit to backend API
+            const token = getAuthToken();
+            
+            if (!token) {
+                throw new Error('Not authenticated. Please log in.');
+            }
+            
+            const response = await fetch('http://localhost:5000/api/units', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(unitData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                showAlert('✅ Unit added successfully!', 'success');
+                
+                // Clear form
+                e.target.reset();
+                
+                // Redirect after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = 'list.html';
+                }, 1500);
+            } else {
+                throw new Error(result.error || result.message || 'Failed to add unit');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('❌ Error: ' + error.message, 'danger');
+        } finally {
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+</script>
+</body>
+</html>

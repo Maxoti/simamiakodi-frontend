@@ -1,0 +1,286 @@
+<!-- whatsapp.html - Reusable WhatsApp Component -->
+<!-- Include this file in your pages with: <link rel="import" href="whatsapp.html"> or via JavaScript -->
+
+<!-- WhatsApp Status Indicator -->
+<div class="whatsapp-status disconnected" id="whatsappStatusIndicator">
+    <div class="status-dot red"></div>
+    <span id="whatsappStatusText">Checking...</span>
+</div>
+
+<!-- WhatsApp Modal -->
+<div id="whatsappModal" class="modal">
+    <div class="whatsapp-modal-content">
+        <div class="whatsapp-modal-header">
+            <h3>
+                <i class="fab fa-whatsapp"></i>
+                Send WhatsApp Message
+            </h3>
+            <button class="close-btn" onclick="WhatsAppService.closeModal()">&times;</button>
+        </div>
+        <div class="whatsapp-modal-body">
+            <div class="message-templates">
+                <p><i class="fas fa-magic me-2"></i>Quick Templates:</p>
+                <button class="template-btn" onclick="WhatsAppService.useTemplate('rent')">
+                     Rent Reminder
+                </button>
+                <button class="template-btn" onclick="WhatsAppService.useTemplate('welcome')">
+                    Welcome Message
+                </button>
+                <button class="template-btn" onclick="WhatsAppService.useTemplate('maintenance')">
+                     Maintenance Update
+                </button>
+                <button class="template-btn" onclick="WhatsAppService.useTemplate('payment')">
+                     Payment Received
+                </button>
+                <button class="template-btn" onclick="WhatsAppService.useTemplate('overdue')">
+                     Overdue Notice
+                </button>
+                <button class="template-btn" onclick="WhatsAppService.useTemplate('custom')">
+                     Custom Message
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tenant Name</label>
+                <input type="text" class="form-control" id="whatsappTenantName" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Phone Number</label>
+                <input type="text" class="form-control" id="whatsappTenantPhone" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Message</label>
+                <textarea class="form-control" id="whatsappMessage" rows="8" 
+                          placeholder="Type your message here..."></textarea>
+                <small class="text-muted">Character count: <span id="whatsappCharCount">0</span></small>
+            </div>
+        </div>
+        <div class="whatsapp-modal-footer">
+            <button class="btn btn-secondary" onclick="WhatsAppService.closeModal()">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button class="btn btn-success" onclick="WhatsAppService.sendMessage()" id="whatsappSendBtn">
+                <i class="fab fa-whatsapp me-2"></i>Send Message
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- WhatsApp Styles -->
+<style>
+    /* WhatsApp Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.show {
+        display: flex !important;
+    }
+
+    .whatsapp-modal-content {
+        background: white;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .whatsapp-modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #25D366;
+        color: white;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .whatsapp-modal-header h3 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: white;
+        line-height: 1;
+    }
+
+    .whatsapp-modal-body {
+        padding: 25px;
+    }
+
+    .message-templates {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .message-templates p {
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .template-btn {
+        background: white;
+        border: 2px solid #dee2e6;
+        padding: 8px 15px;
+        margin: 5px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+    }
+
+    .template-btn:hover {
+        background: #25D366;
+        color: white;
+        border-color: #25D366;
+    }
+
+    .whatsapp-modal-footer {
+        padding: 20px;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    /* WhatsApp Status Indicator */
+    .whatsapp-status {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 12px 20px;
+        border-radius: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 1000;
+        font-size: 14px;
+    }
+
+    .whatsapp-status.connected {
+        border-left: 4px solid #25D366;
+    }
+
+    .whatsapp-status.disconnected {
+        border-left: 4px solid #dc3545;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    .status-dot.green {
+        background: #25D366;
+    }
+
+    .status-dot.red {
+        background: #dc3545;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    /* WhatsApp Button */
+    .btn-whatsapp {
+        background: #25D366 !important;
+        color: white !important;
+    }
+
+    .btn-whatsapp:hover {
+        background: #128C7E !important;
+        transform: scale(1.1);
+    }
+
+    /* Custom Alert Styles */
+    .whatsapp-alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        min-width: 300px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        z-index: 3000;
+        animation: slideIn 0.3s ease;
+    }
+
+    .whatsapp-alert.success {
+        background: #d4edda;
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+
+    .whatsapp-alert.error {
+        background: #f8d7da;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+    }
+
+    .whatsapp-alert.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border-left: 4px solid #17a2b8;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .whatsapp-status {
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            padding: 8px 15px;
+        }
+    }
+</style>
+<script src="../../js/WHATSAPP -SERVICE/whatsapp-service.js"></script>

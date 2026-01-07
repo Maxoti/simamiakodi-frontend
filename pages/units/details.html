@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Details - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .unit-header {
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 30px;
+        }
+
+        .unit-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0d6efd;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.occupied {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-badge.vacant {
+            background: #198754;
+            color: white;
+        }
+
+        .property-link {
+            color: #6c757d;
+            font-size: 1rem;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .property-link:hover {
+            color: #0d6efd;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .stat-card.blue {
+            border-color: #0d6efd;
+            background: linear-gradient(135deg, #e7f1ff 0%, #f8f9fa 100%);
+        }
+
+        .stat-card.green {
+            border-color: #198754;
+            background: linear-gradient(135deg, #e7f5ec 0%, #f8f9fa 100%);
+        }
+
+        .stat-card.orange {
+            border-color: #fd7e14;
+            background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card.blue .stat-icon {
+            color: #0d6efd;
+        }
+
+        .stat-card.green .stat-icon {
+            color: #198754;
+        }
+
+        .stat-card.orange .stat-icon {
+            color: #fd7e14;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 10px 0 5px 0;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0d6efd;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            padding: 12px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #212529;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #fd7e14 0%, #ff922b 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #dc3545 0%, #e85d6f 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .btn-back:hover,
+        .btn-edit:hover,
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .error-message i {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+
+        .tenant-info-card {
+            background: #e7f1ff;
+            border: 1px solid #0d6efd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .tenant-info-card h5 {
+            color: #0d6efd;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-door-open me-2"></i>Unit Details</h2>
+                    <p class="mb-0 opacity-75">View unit information</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading unit details...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="content-card" style="display: none;">
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <h4>Unit Not Found</h4>
+                <p class="text-muted">The unit you're looking for doesn't exist or has been deleted.</p>
+                <a href="list.html" class="btn btn-back mt-3">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Units
+                </a>
+            </div>
+        </div>
+
+        <!-- Unit Details Content -->
+        <div id="unitContent" style="display: none;">
+            <div class="content-card">
+                <!-- Unit Header -->
+                <div class="unit-header">
+                    <h1 class="unit-title" id="unitName"></h1>
+                    <span class="status-badge" id="unitStatus"></span>
+                    <a href="#" class="property-link" id="propertyLink">
+                        <i class="fas fa-building"></i>
+                        <span id="propertyName"></span>
+                    </a>
+                </div>
+
+                <!-- Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card blue">
+                        <div class="stat-icon"><i class="fas fa-bed"></i></div>
+                        <div class="stat-value" id="bedrooms">0</div>
+                        <div class="stat-label">Bedrooms</div>
+                    </div>
+
+                    <div class="stat-card green">
+                        <div class="stat-icon"><i class="fas fa-bath"></i></div>
+                        <div class="stat-value" id="bathrooms">0</div>
+                        <div class="stat-label">Bathrooms</div>
+                    </div>
+
+                    <div class="stat-card orange">
+                        <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                        <div class="stat-value" id="rent">KES 0</div>
+                        <div class="stat-label">Monthly Rent</div>
+                    </div>
+                </div>
+
+                <!-- Basic Information -->
+                <h4 class="section-title">
+                    <i class="fas fa-info-circle"></i>Basic Information
+                </h4>
+                <div id="basicInfo"></div>
+
+                <!-- Tenant Information (if occupied) -->
+                <div id="tenantSection" style="display: none;">
+                    <h4 class="section-title mt-4">
+                        <i class="fas fa-user"></i>Current Tenant
+                    </h4>
+                    <div class="tenant-info-card" id="tenantInfo"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="list.html" class="btn btn-back">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                    <button class="btn btn-edit" id="editBtn">
+                        <i class="fas fa-edit me-2"></i>Edit Unit
+                    </button>
+                    <button class="btn btn-delete" id="deleteBtn">
+                        <i class="fas fa-trash me-2"></i>Delete Unit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong id="deleteUnitName"></strong>?</p>
+                    <p class="text-danger"><strong>Warning:</strong> This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Unit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+    <script>
+        // Protect this page
+        protectPage();
+
+        let currentUnit = null;
+
+        // Load unit details on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const unitId = urlParams.get('id');
+
+            if (!unitId) {
+                showError();
+                return;
+            }
+
+            loadUnitDetails(unitId);
+        });
+
+        // Load unit details from API
+        async function loadUnitDetails(id) {
+            try {
+                const token = getAuthToken();
+                
+                const response = await fetch(`http://localhost:5000/api/units/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unit not found');
+                }
+
+                const result = await response.json();
+                currentUnit = result.data;
+
+                displayUnitDetails(currentUnit);
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('unitContent').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading unit:', error);
+                showError();
+            }
+        }
+
+        // Display unit details
+        function displayUnitDetails(unit) {
+            // Header
+            document.getElementById('unitName').textContent = unit.unit_number || 'Unnamed Unit';
+            
+            const statusBadge = document.getElementById('unitStatus');
+            statusBadge.textContent = unit.is_occupied ? 'Occupied' : 'Vacant';
+            statusBadge.className = `status-badge ${unit.is_occupied ? 'occupied' : 'vacant'}`;
+
+            // Property link
+            if (unit.property_name) {
+                document.getElementById('propertyName').textContent = unit.property_name;
+                document.getElementById('propertyLink').href = `../properties/details.html?id=${unit.property_id}`;
+            }
+
+            // Statistics
+            document.getElementById('bedrooms').textContent = unit.bedrooms || 0;
+            document.getElementById('bathrooms').textContent = unit.bathrooms || 0;
+            document.getElementById('rent').textContent = `KES ${formatMoney(unit.rent)}`;
+
+            // Basic Information
+            const basicInfo = document.getElementById('basicInfo');
+            basicInfo.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">Unit ID:</div>
+                    <div class="info-value">#${unit.unit_id}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Unit Number:</div>
+                    <div class="info-value">${unit.unit_number || 'N/A'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Floor:</div>
+                    <div class="info-value">${unit.floor || 'N/A'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Bedrooms:</div>
+                    <div class="info-value">${unit.bedrooms || 0}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Bathrooms:</div>
+                    <div class="info-value">${unit.bathrooms || 0}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Square Footage:</div>
+                    <div class="info-value">${unit.square_footage ? unit.square_footage + ' sq ft' : 'N/A'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Monthly Rent:</div>
+                    <div class="info-value">KES ${formatMoney(unit.rent)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Status:</div>
+                    <div class="info-value">${unit.is_occupied ? 'Occupied' : 'Vacant'}</div>
+                </div>
+                ${unit.description ? `
+                <div class="info-row">
+                    <div class="info-label">Description:</div>
+                    <div class="info-value">${unit.description}</div>
+                </div>
+                ` : ''}
+            `;
+
+            // Tenant Information (if occupied)
+            if (unit.is_occupied && unit.tenant_name) {
+                document.getElementById('tenantSection').style.display = 'block';
+                document.getElementById('tenantInfo').innerHTML = `
+                    <div class="info-row">
+                        <div class="info-label">Tenant Name:</div>
+                        <div class="info-value">${unit.tenant_name}</div>
+                    </div>
+                    ${unit.tenant_email ? `
+                    <div class="info-row">
+                        <div class="info-label">Email:</div>
+                        <div class="info-value">${unit.tenant_email}</div>
+                    </div>
+                    ` : ''}
+                    ${unit.tenant_phone ? `
+                    <div class="info-row">
+                        <div class="info-label">Phone:</div>
+                        <div class="info-value">${unit.tenant_phone}</div>
+                    </div>
+                    ` : ''}
+                `;
+            }
+
+            // Setup buttons
+            document.getElementById('editBtn').onclick = () => editUnit(unit.unit_id);
+            document.getElementById('deleteBtn').onclick = () => deleteUnit(unit.unit_id, unit.unit_number);
+        }
+
+        // Format money
+        function formatMoney(amount) {
+            if (!amount) return '0.00';
+            return parseFloat(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Edit unit
+        function editUnit(id) {
+            window.location.href = `edit.html?id=${id}`;
+        }
+
+        // Delete unit
+        function deleteUnit(id, unitNumber) {
+            document.getElementById('deleteUnitName').textContent = unitNumber;
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+
+            document.getElementById('confirmDeleteBtn').onclick = async () => {
+                await confirmDelete(id);
+            };
+        }
+
+        // Confirm delete
+        async function confirmDelete(id) {
+            try {
+                const token = getAuthToken();
+                
+                const response = await fetch(`http://localhost:5000/api/units/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                    alert('✅ Unit deleted successfully!');
+                    window.location.href = 'list.html';
+                } else {
+                    alert('❌ Error: ' + (result.error || 'Failed to delete unit'));
+                }
+            } catch (error) {
+                console.error('Error deleting unit:', error);
+                alert('❌ Failed to delete unit. Please try again.');
+            }
+        }
+
+        // Show error state
+        function showError() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

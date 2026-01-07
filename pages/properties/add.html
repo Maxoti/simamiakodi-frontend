@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Property - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #198754;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+        }
+
+        .btn-primary-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .form-check-input:checked {
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-building me-2"></i>Add New Property</h2>
+                    <p class="mb-0 opacity-75">Enter property details below</p>
+                </div>
+                <a href="../../dashboard.html" class="back-button">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="container pb-5">
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <div class="form-card">
+            <form id="add-property-form">
+                <!-- Basic Information -->
+                <h4 class="section-title">
+                    <i class="fas fa-info-circle"></i> Basic Information
+                </h4>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Property Name</label>
+                        <input type="text" class="form-control" name="property_name" 
+                               placeholder="e.g., Greenview Apartments" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Property Type</label>
+                        <select class="form-select" name="property_type" required>
+                            <option value="">Select Type</option>
+                            <option value="apartment">Apartment Building</option>
+                            <option value="house">Single House</option>
+                            <option value="townhouse">Townhouse</option>
+                            <option value="commercial">Commercial Building</option>
+                            <option value="mixed">Mixed Use</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label required-field">Total Units</label>
+                        <input type="number" class="form-control" name="total_units" 
+                               placeholder="Number of units" min="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Total Floors</label>
+                        <input type="number" class="form-control" name="total_floors" 
+                               placeholder="Number of floors" min="1">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Year Built</label>
+                        <input type="number" class="form-control" name="year_built" 
+                               placeholder="e.g., 2020" min="1900" max="2025">
+                    </div>
+                </div>
+
+                <!-- Location Details -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-map-marker-alt"></i> Location Details
+                </h4>
+
+                <div class="mb-3">
+                    <label class="form-label required-field">Street Address</label>
+                    <input type="text" class="form-control" name="street_address" 
+                           placeholder="e.g., 123 Moi Avenue" required>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label required-field">City</label>
+                        <input type="text" class="form-control" name="city" 
+                               placeholder="e.g., Nairobi" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">County/State</label>
+                        <input type="text" class="form-control" name="county" 
+                               placeholder="e.g., Nairobi County">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Postal Code</label>
+                        <input type="text" class="form-control" name="postal_code" 
+                               placeholder="e.g., 00100">
+                    </div>
+                </div>
+
+                <!-- Financial Information -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-money-bill-wave"></i> Financial Information
+                </h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Purchase Price (KES)</label>
+                        <input type="number" class="form-control" name="purchase_price" 
+                               placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Current Market Value (KES)</label>
+                        <input type="number" class="form-control" name="market_value" 
+                               placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Property Manager -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-user-tie"></i> Management
+                </h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Property Manager Name</label>
+                        <input type="text" class="form-control" name="manager_name" 
+                               placeholder="Name of property manager">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Manager Contact</label>
+                        <input type="tel" class="form-control" name="manager_contact" 
+                               placeholder="+254712345678">
+                    </div>
+                </div>
+
+                <!-- Additional Details -->
+                <h4 class="section-title mt-4">
+                    <i class="fas fa-file-alt"></i> Additional Details
+                </h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description" rows="4" 
+                              placeholder="Enter property description, amenities, features, etc."></textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Parking Spaces</label>
+                        <input type="number" class="form-control" name="parking_spaces" 
+                               placeholder="Number of parking spaces" min="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="active" selected>Active</option>
+                            <option value="under_construction">Under Construction</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <div class="mb-4">
+                    <label class="form-label">Amenities</label>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="elevator" id="elevator">
+                                <label class="form-check-label" for="elevator">Elevator</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="security" id="security">
+                                <label class="form-check-label" for="security">24/7 Security</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="gym" id="gym">
+                                <label class="form-check-label" for="gym">Gym</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="pool" id="pool">
+                                <label class="form-check-label" for="pool">Swimming Pool</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="generator" id="generator">
+                                <label class="form-check-label" for="generator">Generator</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="water" id="water">
+                                <label class="form-check-label" for="water">Borehole Water</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="wifi" id="wifi">
+                                <label class="form-check-label" for="wifi">WiFi</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="amenities" value="cctv" id="cctv">
+                                <label class="form-check-label" for="cctv">CCTV</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary-custom" id="submitBtn">
+                        <i class="fas fa-save me-2"></i>Save Property
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+    <!-- Bootstrap JS -->
+
+<script>
+    // Authentication Check
+    function protectPage() {
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+        
+        if (!token) {
+            window.location.href = '/pages/auth/login.html';
+            return false;
+        }
+        return true;
+    }
+
+    function getAuthToken() {
+        return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    }
+
+    // Protect this page on load
+    if (!protectPage()) {
+        throw new Error('Not authenticated');
+    }
+
+    // Show alert function
+    function showAlert(message, type = 'danger') {
+        const alertContainer = document.getElementById('alertContainer');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        alertContainer.appendChild(alert);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+
+        // Scroll to top to show alert
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Handle form submission
+    document.getElementById('add-property-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const originalBtnText = submitBtn.innerHTML;
+        
+        // Disable button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        
+        try {
+            const formData = new FormData(e.target);
+            
+            // Build location string from separate fields
+            const streetAddress = formData.get('street_address')?.trim() || '';
+            const city = formData.get('city')?.trim() || '';
+            const county = formData.get('county')?.trim() || '';
+            const postalCode = formData.get('postal_code')?.trim() || '';
+            
+            // Combine location fields - only include non-empty parts
+            const locationParts = [streetAddress, city, county, postalCode].filter(part => part !== '');
+            const location = locationParts.join(', ');
+            
+            // Get amenities as array
+            const amenities = formData.getAll('amenities');
+            
+            // Build property object
+            const propertyData = {
+                property_name: formData.get('property_name'),
+                location: location,
+                total_units: parseInt(formData.get('total_units')),
+                property_type: formData.get('property_type') || null,
+                total_floors: formData.get('total_floors') ? parseInt(formData.get('total_floors')) : null,
+                year_built: formData.get('year_built') ? parseInt(formData.get('year_built')) : null,
+                purchase_price: formData.get('purchase_price') ? parseFloat(formData.get('purchase_price')) : null,
+                market_value: formData.get('market_value') ? parseFloat(formData.get('market_value')) : null,
+                manager_name: formData.get('manager_name') || null,
+                manager_contact: formData.get('manager_contact') || null,
+                description: formData.get('description') || null,
+                parking_spaces: formData.get('parking_spaces') ? parseInt(formData.get('parking_spaces')) : null,
+                status: formData.get('status') || 'active',
+                amenities: amenities.length > 0 ? amenities.join(', ') : null
+            };
+            
+            console.log('Submitting Property Data:', propertyData);
+            
+            // Submit to backend API
+            const token = getAuthToken();
+            
+            if (!token) {
+                showAlert('❌ Not authenticated. Please log in.', 'danger');
+                setTimeout(() => {
+                    window.location.href = '/pages/auth/login.html';
+                }, 1500);
+                return;
+            }
+            
+            const response = await fetch('http://localhost:5000/api/properties', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(propertyData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                showAlert('✅ Property added successfully!', 'success');
+                
+                // Clear form
+                e.target.reset();
+                
+                // Redirect after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/pages/properties/list.html';
+                }, 2000);
+            } else {
+                throw new Error(result.error || result.message || 'Failed to add property');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('❌ Error: ' + error.message, 'danger');
+        } finally {
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+</script>
+</body>
+</html>
