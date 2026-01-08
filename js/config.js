@@ -1,6 +1,34 @@
+// API Configuration - Auto-detects environment
+const ENV_CONFIG = {
+  development: {
+    BASE_URL: 'http://localhost:5000'
+  },
+  production: {
+    BASE_URL: 'https://simamiakodi-backend.onrender.com'  // Your Render backend URL
+  }
+};
+
+// Auto-detect environment
+function getEnvironment() {
+  const hostname = window.location.hostname;
+  
+  // Local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'development';
+  }
+  
+  // Production (Vercel, custom domain, etc.)
+  return 'production';
+}
+
+// Get current environment
+const CURRENT_ENV = getEnvironment();
+
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:5000', // Change this to your backend port
+  BASE_URL: ENV_CONFIG[CURRENT_ENV].BASE_URL,
+  ENVIRONMENT: CURRENT_ENV,
+  
   ENDPOINTS: {
     // Tenants
     TENANTS: '/api/tenants',
@@ -63,7 +91,15 @@ const API_CONFIG = {
   }
 };
 
+// Log configuration (helps with debugging)
+console.log(' SimamiaKodi Configuration');
+console.log('Environment:', CURRENT_ENV);
+console.log('API Base URL:', API_CONFIG.BASE_URL);
+
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = API_CONFIG;
 }
+
+// Also make it globally available
+window.API_CONFIG = API_CONFIG;
