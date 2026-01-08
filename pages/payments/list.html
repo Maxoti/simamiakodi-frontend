@@ -446,14 +446,16 @@
             </div>
         </div>
     </div>
-
+<script src="../../js/config.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
     <script src="../../js/auth.js"></script>
   <script>
-    let allPayments = [];
+    const API_URL = `${API_CONFIG.BASE_URL}/api`;
+
+let allPayments = [];
 let filteredPayments = [];
 let properties = {};
 let deleteModal;
@@ -487,7 +489,7 @@ async function loadProperties() {
     try {
         const token = getAuthToken();
         
-        const response = await fetch('http://localhost:5000/api/properties', {
+        const response = await fetch(`${API_URL}/properties`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -525,7 +527,7 @@ async function loadPayments() {
     try {
         const token = getAuthToken();
         
-        const response = await fetch('http://localhost:5000/api/payments', {
+        const response = await fetch(`${API_URL}/payments`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -799,7 +801,7 @@ async function confirmDelete() {
     try {
         const token = getAuthToken();
         
-        const response = await fetch(`http://localhost:5000/api/payments/${paymentToDelete}`, {
+        const response = await fetch(`${API_URL}/payments/${paymentToDelete}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -830,6 +832,7 @@ async function confirmDelete() {
         btn.innerHTML = originalText;
         paymentToDelete = null;
     }
+
 }
   </script>
 </body>

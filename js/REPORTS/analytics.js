@@ -1,15 +1,13 @@
 // SimamiaKodi Property Management - Reports Module (Backend Connected)
 
 // Configuration
-const CONFIG = {
-    API_URL: 'http://localhost:5000/api',
-    CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
-};
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
+
+// Note: No caching implemented - reports always fetch fresh data for accuracy
 
 // State management
 const state = {
     charts: {},
-    cache: new Map(),
     rawData: {
         payments: [],
         expenses: [],
@@ -89,7 +87,13 @@ const utils = {
 const apiService = {
     async fetchData(endpoint) {
         try {
-            const response = await fetch(`${CONFIG.API_URL}/${endpoint}`);
+            const token = getAuthToken();
+            const response = await fetch(`${API_URL}/${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

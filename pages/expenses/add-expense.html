@@ -356,238 +356,245 @@
             </div>
         </div>
     </div>
-
+<script src="../../js/config.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
     <script src="../../js/auth.js"></script>
-    <script>
-        protectPage();
+   <script>
+    protectPage();
 
-        let properties = [];
-        let units = [];
-        let selectedExpenseType = '';
-        let isEditMode = false;
-        let expenseId = null;
+    // ✅ ADD THIS LINE AT THE TOP
+    const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkEditMode();
-            loadProperties();
-            loadUnits();
-            setDefaultDate();
-            setupEventListeners();
-        });
+    let properties = [];
+    let units = [];
+    let selectedExpenseType = '';
+    let isEditMode = false;
+    let expenseId = null;
 
-        function checkEditMode() {
-            const urlParams = new URLSearchParams(window.location.search);
-            expenseId = urlParams.get('id');
-            
-            if (expenseId) {
-                isEditMode = true;
-                document.getElementById('pageTitle').innerHTML = 
-                    '<i class="fas fa-edit me-2"></i>Edit Expense';
-                document.getElementById('submitBtnText').textContent = 'Update Expense';
-                loadExpenseData(expenseId);
-            }
+    document.addEventListener('DOMContentLoaded', () => {
+        checkEditMode();
+        loadProperties();
+        loadUnits();
+        setDefaultDate();
+        setupEventListeners();
+    });
+
+    function checkEditMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        expenseId = urlParams.get('id');
+        
+        if (expenseId) {
+            isEditMode = true;
+            document.getElementById('pageTitle').innerHTML = 
+                '<i class="fas fa-edit me-2"></i>Edit Expense';
+            document.getElementById('submitBtnText').textContent = 'Update Expense';
+            loadExpenseData(expenseId);
         }
-
-        function setupEventListeners() {
-            document.getElementById('expenseForm').addEventListener('submit', handleSubmit);
-            document.getElementById('propertySelect').addEventListener('change', filterUnitsByProperty);
-            
-            // Expense type selection
-            document.querySelectorAll('.expense-type-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.expense-type-option').forEach(opt => 
-                        opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedExpenseType = this.dataset.type;
-                    document.getElementById('expenseType').value = selectedExpenseType;
-                });
-            });
-        }
-
-        async function loadProperties() {
-            try {
-                const token = getAuthToken();
-                const response = await fetch('http://localhost:5000/api/properties', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (!response.ok) throw new Error('Failed to load properties');
-
-                const result = await response.json();
-                properties = result.data || [];
-
-                const select = document.getElementById('propertySelect');
-                properties.forEach(property => {
-                    const option = document.createElement('option');
-                    option.value = property.property_id;
-                    option.textContent = property.property_name;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading properties:', error);
-                alert('Failed to load properties. Please refresh the page.');
-            }
-        }
-
-        async function loadUnits() {
-            try {
-                const token = getAuthToken();
-                const response = await fetch('http://localhost:5000/api/units', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (!response.ok) throw new Error('Failed to load units');
-
-                const result = await response.json();
-                units = result.data || [];
-            } catch (error) {
-                console.error('Error loading units:', error);
-            }
-        }
-
-        function filterUnitsByProperty() {
-            const propertyId = document.getElementById('propertySelect').value;
-            const unitSelect = document.getElementById('unitSelect');
-            
-            unitSelect.innerHTML = '<option value="">Select unit (if applicable)...</option>';
-            
-            if (!propertyId) return;
-            
-            const filteredUnits = units.filter(u => u.property_id == propertyId);
-            
-            filteredUnits.forEach(unit => {
-                const option = document.createElement('option');
-                option.value = unit.unit_id;
-                option.textContent = `${unit.unit_number}${unit.tenant_name ? ' - ' + unit.tenant_name : ''}`;
-                unitSelect.appendChild(option);
-            });
-        }
-
-        function setDefaultDate() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('expenseDate').value = today;
-        }
-
-          async function loadExpenseData(id) {
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    document.getElementById('loadingText').textContent = 'Loading expense data...';
-
-    try {
-        const token = getAuthToken();
-        const response = await fetch(`http://localhost:5000/api/expenses/${id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) throw new Error('Failed to load expense');
-
-        const result = await response.json();
-        const expense = result.data;
-
-        // Populate form fields
-        document.getElementById('propertySelect').value = expense.property_id || '';
-        document.getElementById('unitSelect').value = expense.unit_id || '';
-        document.getElementById('amount').value = expense.amount;
-        document.getElementById('expenseDate').value = expense.expense_date;
-        document.getElementById('vendorName').value = expense.vendor_name || '';
-        document.getElementById('receiptNumber').value = expense.receipt_number || '';
-        document.getElementById('description').value = expense.description || '';
-
-        // Select expense type - check both 'category' and 'expense_type' for compatibility
-        selectedExpenseType = expense.category || expense.expense_type;  // ✅ Support both
-        document.getElementById('expenseType').value = selectedExpenseType;
-        document.querySelector(`[data-type="${selectedExpenseType}"]`)?.classList.add('selected');
-
-        // Filter units
-        filterUnitsByProperty();
-        // Set unit after filtering
-        setTimeout(() => {
-            document.getElementById('unitSelect').value = expense.unit_id || '';
-        }, 100);
-
-    } catch (error) {
-        console.error('Error loading expense:', error);
-        alert('Failed to load expense data. Redirecting to expenses list.');
-        window.location.href = 'expenses.html';
-    } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
     }
-}
 
-        async function handleSubmit(e) {
-            e.preventDefault();
+    function setupEventListeners() {
+        document.getElementById('expenseForm').addEventListener('submit', handleSubmit);
+        document.getElementById('propertySelect').addEventListener('change', filterUnitsByProperty);
+        
+        // Expense type selection
+        document.querySelectorAll('.expense-type-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.expense-type-option').forEach(opt => 
+                    opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedExpenseType = this.dataset.type;
+                document.getElementById('expenseType').value = selectedExpenseType;
+            });
+        });
+    }
 
-            if (!selectedExpenseType) {
-                alert('Please select an expense type');
-                return;
-            }
+    async function loadProperties() {
+        try {
+            const token = getAuthToken();
+            // ✅ CHANGED: Use API_URL instead of hardcoded URL
+            const response = await fetch(`${API_URL}/properties`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-            const formData = {
-                property_id: parseInt(document.getElementById('propertySelect').value),
-                unit_id: document.getElementById('unitSelect').value ? 
-                    parseInt(document.getElementById('unitSelect').value) : null,
-                expense_type: selectedExpenseType,
-                amount: parseFloat(document.getElementById('amount').value),
-                expense_date: document.getElementById('expenseDate').value,
-                vendor_name: document.getElementById('vendorName').value.trim() || null,
-                receipt_number: document.getElementById('receiptNumber').value.trim() || null,
-                description: document.getElementById('description').value.trim() || null
-            };
+            if (!response.ok) throw new Error('Failed to load properties');
 
-            // Validation
-            if (!formData.property_id) {
-                alert('Please select a property');
-                return;
-            }
+            const result = await response.json();
+            properties = result.data || [];
 
-            if (formData.amount <= 0) {
-                alert('Amount must be greater than zero');
-                return;
-            }
-
-            // Show loading
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            document.getElementById('loadingText').textContent = 
-                isEditMode ? 'Updating expense...' : 'Recording expense...';
-
-            try {
-                const token = getAuthToken();
-                const url = isEditMode 
-                    ? `http://localhost:5000/api/expenses/${expenseId}`
-                    : 'http://localhost:5000/api/expenses';
-                
-                const method = isEditMode ? 'PUT' : 'POST';
-
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.error || 'Failed to save expense');
-                }
-
-                alert(isEditMode 
-                    ? '✅ Expense updated successfully!' 
-                    : '✅ Expense recorded successfully!');
-                window.location.href = 'expenses.html';
-
-            } catch (error) {
-                console.error('Error saving expense:', error);
-                alert('❌ Error: ' + error.message);
-            } finally {
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }
+            const select = document.getElementById('propertySelect');
+            properties.forEach(property => {
+                const option = document.createElement('option');
+                option.value = property.property_id;
+                option.textContent = property.property_name;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading properties:', error);
+            alert('Failed to load properties. Please refresh the page.');
         }
-    </script>
+    }
+
+    async function loadUnits() {
+        try {
+            const token = getAuthToken();
+            // ✅ CHANGED: Use API_URL instead of hardcoded URL
+            const response = await fetch(`${API_URL}/units`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Failed to load units');
+
+            const result = await response.json();
+            units = result.data || [];
+        } catch (error) {
+            console.error('Error loading units:', error);
+        }
+    }
+
+    function filterUnitsByProperty() {
+        const propertyId = document.getElementById('propertySelect').value;
+        const unitSelect = document.getElementById('unitSelect');
+        
+        unitSelect.innerHTML = '<option value="">Select unit (if applicable)...</option>';
+        
+        if (!propertyId) return;
+        
+        const filteredUnits = units.filter(u => u.property_id == propertyId);
+        
+        filteredUnits.forEach(unit => {
+            const option = document.createElement('option');
+            option.value = unit.unit_id;
+            option.textContent = `${unit.unit_number}${unit.tenant_name ? ' - ' + unit.tenant_name : ''}`;
+            unitSelect.appendChild(option);
+        });
+    }
+
+    function setDefaultDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('expenseDate').value = today;
+    }
+
+    async function loadExpenseData(id) {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingText').textContent = 'Loading expense data...';
+
+        try {
+            const token = getAuthToken();
+            // ✅ CHANGED: Use API_URL instead of hardcoded URL
+            const response = await fetch(`${API_URL}/expenses/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Failed to load expense');
+
+            const result = await response.json();
+            const expense = result.data;
+
+            // Populate form fields
+            document.getElementById('propertySelect').value = expense.property_id || '';
+            document.getElementById('unitSelect').value = expense.unit_id || '';
+            document.getElementById('amount').value = expense.amount;
+            document.getElementById('expenseDate').value = expense.expense_date;
+            document.getElementById('vendorName').value = expense.vendor_name || '';
+            document.getElementById('receiptNumber').value = expense.receipt_number || '';
+            document.getElementById('description').value = expense.description || '';
+
+            // Select expense type - check both 'category' and 'expense_type' for compatibility
+            selectedExpenseType = expense.category || expense.expense_type;
+            document.getElementById('expenseType').value = selectedExpenseType;
+            document.querySelector(`[data-type="${selectedExpenseType}"]`)?.classList.add('selected');
+
+            // Filter units
+            filterUnitsByProperty();
+            // Set unit after filtering
+            setTimeout(() => {
+                document.getElementById('unitSelect').value = expense.unit_id || '';
+            }, 100);
+
+        } catch (error) {
+            console.error('Error loading expense:', error);
+            alert('Failed to load expense data. Redirecting to expenses list.');
+            window.location.href = 'expenses.html';
+        } finally {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+
+        if (!selectedExpenseType) {
+            alert('Please select an expense type');
+            return;
+        }
+
+        const formData = {
+            property_id: parseInt(document.getElementById('propertySelect').value),
+            unit_id: document.getElementById('unitSelect').value ? 
+                parseInt(document.getElementById('unitSelect').value) : null,
+            expense_type: selectedExpenseType,
+            amount: parseFloat(document.getElementById('amount').value),
+            expense_date: document.getElementById('expenseDate').value,
+            vendor_name: document.getElementById('vendorName').value.trim() || null,
+            receipt_number: document.getElementById('receiptNumber').value.trim() || null,
+            description: document.getElementById('description').value.trim() || null
+        };
+
+        // Validation
+        if (!formData.property_id) {
+            alert('Please select a property');
+            return;
+        }
+
+        if (formData.amount <= 0) {
+            alert('Amount must be greater than zero');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingText').textContent = 
+            isEditMode ? 'Updating expense...' : 'Recording expense...';
+
+        try {
+            const token = getAuthToken();
+            // ✅ CHANGED: Use API_URL instead of hardcoded URL
+            const url = isEditMode 
+                ? `${API_URL}/expenses/${expenseId}`
+                : `${API_URL}/expenses`;
+            
+            const method = isEditMode ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to save expense');
+            }
+
+            alert(isEditMode 
+                ? '✅ Expense updated successfully!' 
+                : '✅ Expense recorded successfully!');
+            window.location.href = 'expenses.html';
+
+        } catch (error) {
+            console.error('Error saving expense:', error);
+            alert('❌ Error: ' + error.message);
+        } finally {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    }
+</script>
 </body>
 </html>

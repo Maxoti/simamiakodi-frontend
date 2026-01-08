@@ -263,184 +263,186 @@
     <script src="../../js/auth.js"></script>
     <script>
         // Protect this page
-        protectPage();
+       protectPage();
 
-        let unitId = null;
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
-        // Show alert function
-        function showAlert(message, type = 'danger') {
-            const alertContainer = document.getElementById('alertContainer');
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type} alert-dismissible fade show`;
-            alert.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            alertContainer.appendChild(alert);
+let unitId = null;
+
+// Show alert function
+function showAlert(message, type = 'danger') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    unitId = urlParams.get('id');
+
+    if (!unitId) {
+        showAlert('❌ No unit ID provided', 'danger');
+        setTimeout(() => {
+            window.location.href = 'list.html';
+        }, 2000);
+        return;
+    }
+
+    loadProperties();
+    loadUnitData(unitId);
+});
+
+// Load properties for dropdown
+async function loadProperties() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/properties`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to load properties');
+
+        const result = await response.json();
+        const properties = result.data || [];
+
+        const select = document.getElementById('propertySelect');
+        properties.forEach(property => {
+            const option = document.createElement('option');
+            option.value = property.property_id;
+            option.textContent = property.property_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading properties:', error);
+        showAlert('❌ Failed to load properties', 'danger');
+    }
+}
+
+// Load unit data from API
+async function loadUnitData(id) {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/units/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Unit not found');
+        }
+
+        const result = await response.json();
+        populateForm(result.data);
+        
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('formCard').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading unit:', error);
+        showAlert('❌ Failed to load unit data. Redirecting...', 'danger');
+        setTimeout(() => {
+            window.location.href = 'list.html';
+        }, 2000);
+    }
+}
+
+// Populate form with existing data
+function populateForm(unit) {
+    document.getElementById('unitIdBadge').textContent = `ID: #${unit.unit_id}`;
+
+    const form = document.getElementById('edit-unit-form');
+
+    form.property_id.value = unit.property_id || '';
+    form.unit_number.value = unit.unit_number || '';
+    form.house_type.value = unit.house_type || '';
+    form.floor_number.value = unit.floor_number || '';
+    form.bedrooms.value = unit.bedrooms || '';
+    form.bathrooms.value = unit.bathrooms || '';
+    form.square_meters.value = unit.square_meters || '';
+    form.monthly_rent.value = unit.monthly_rent || '';
+    form.deposit_amount.value = unit.deposit_amount || '';
+    form.has_parking.checked = unit.has_parking || false;
+    form.is_occupied.checked = unit.is_occupied || false;
+}
+
+// Handle form submission
+document.getElementById('edit-unit-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+    
+    try {
+        const formData = new FormData(e.target);
+        
+        const unitData = {
+            property_id: parseInt(formData.get('property_id')),
+            unit_number: formData.get('unit_number'),
+            house_type: formData.get('house_type'),
+            floor_number: formData.get('floor_number') ? parseInt(formData.get('floor_number')) : null,
+            bedrooms: formData.get('bedrooms') ? parseInt(formData.get('bedrooms')) : null,
+            bathrooms: formData.get('bathrooms') ? parseInt(formData.get('bathrooms')) : null,
+            square_meters: formData.get('square_meters') ? parseFloat(formData.get('square_meters')) : null,
+            monthly_rent: parseFloat(formData.get('monthly_rent')),
+            deposit_amount: formData.get('deposit_amount') ? parseFloat(formData.get('deposit_amount')) : null,
+            has_parking: formData.get('has_parking') === 'on',
+            is_occupied: formData.get('is_occupied') === 'on'
+        };
+        
+        console.log('Update Data:', unitData);
+        
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/units/${unitId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(unitData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showAlert('✅ Unit updated successfully!', 'success');
             
             setTimeout(() => {
-                alert.remove();
-            }, 5000);
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            unitId = urlParams.get('id');
-
-            if (!unitId) {
-                showAlert('❌ No unit ID provided', 'danger');
-                setTimeout(() => {
-                    window.location.href = 'list.html';
-                }, 2000);
-                return;
-            }
-
-            loadProperties();
-            loadUnitData(unitId);
-        });
-
-        // Load properties for dropdown
-        async function loadProperties() {
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch('http://localhost:5000/api/properties', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) throw new Error('Failed to load properties');
-
-                const result = await response.json();
-                const properties = result.data || [];
-
-                const select = document.getElementById('propertySelect');
-                properties.forEach(property => {
-                    const option = document.createElement('option');
-                    option.value = property.property_id;
-                    option.textContent = property.property_name;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading properties:', error);
-                showAlert('❌ Failed to load properties', 'danger');
-            }
-        }
-
-        // Load unit data from API
-        async function loadUnitData(id) {
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch(`http://localhost:5000/api/units/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Unit not found');
-                }
-
-                const result = await response.json();
-                populateForm(result.data);
-                
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('formCard').style.display = 'block';
-            } catch (error) {
-                console.error('Error loading unit:', error);
-                showAlert('❌ Failed to load unit data. Redirecting...', 'danger');
-                setTimeout(() => {
-                    window.location.href = 'list.html';
-                }, 2000);
-            }
-        }
-
-        // Populate form with existing data
-        function populateForm(unit) {
-            document.getElementById('unitIdBadge').textContent = `ID: #${unit.unit_id}`;
-
-            const form = document.getElementById('edit-unit-form');
-
-            form.property_id.value = unit.property_id || '';
-            form.unit_number.value = unit.unit_number || '';
-            form.house_type.value = unit.house_type || '';
-            form.floor_number.value = unit.floor_number || '';
-            form.bedrooms.value = unit.bedrooms || '';
-            form.bathrooms.value = unit.bathrooms || '';
-            form.square_meters.value = unit.square_meters || '';
-            form.monthly_rent.value = unit.monthly_rent || '';
-            form.deposit_amount.value = unit.deposit_amount || '';
-            form.has_parking.checked = unit.has_parking || false;
-            form.is_occupied.checked = unit.is_occupied || false;
-        }
-
-        // Handle form submission
-        document.getElementById('edit-unit-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+                window.location.href = `details.html?id=${unitId}`;
+            }, 1500);
+        } else {
+            showAlert('❌ Error: ' + (result.error || 'Failed to update unit'), 'danger');
             
-            const submitBtn = document.getElementById('submitBtn');
-            const originalBtnText = submitBtn.innerHTML;
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
-            
-            try {
-                const formData = new FormData(e.target);
-                
-                const unitData = {
-                    property_id: parseInt(formData.get('property_id')),
-                    unit_number: formData.get('unit_number'),
-                    house_type: formData.get('house_type'),
-                    floor_number: formData.get('floor_number') ? parseInt(formData.get('floor_number')) : null,
-                    bedrooms: formData.get('bedrooms') ? parseInt(formData.get('bedrooms')) : null,
-                    bathrooms: formData.get('bathrooms') ? parseInt(formData.get('bathrooms')) : null,
-                    square_meters: formData.get('square_meters') ? parseFloat(formData.get('square_meters')) : null,
-                    monthly_rent: parseFloat(formData.get('monthly_rent')),
-                    deposit_amount: formData.get('deposit_amount') ? parseFloat(formData.get('deposit_amount')) : null,
-                    has_parking: formData.get('has_parking') === 'on',
-                    is_occupied: formData.get('is_occupied') === 'on'
-                };
-                
-                console.log('Update Data:', unitData);
-                
-                const token = getAuthToken();
-                
-                const response = await fetch(`http://localhost:5000/api/units/${unitId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(unitData)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showAlert('✅ Unit updated successfully!', 'success');
-                    
-                    setTimeout(() => {
-                        window.location.href = `details.html?id=${unitId}`;
-                    }, 1500);
-                } else {
-                    showAlert('❌ Error: ' + (result.error || 'Failed to update unit'), 'danger');
-                    
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('❌ Failed to update unit. Please check your connection and try again.', 'danger');
-                
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
-        });
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('❌ Failed to update unit. Please check your connection and try again.', 'danger');
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+});
     </script>
 </body>
 </html>

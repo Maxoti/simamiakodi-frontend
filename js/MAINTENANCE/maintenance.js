@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:5000/api/maintenance';
+// ===== CONFIGURATION =====
+const API_BASE_URL = `${API_CONFIG.BASE_URL}/api/maintenance`;
 
 // Data Management
 let maintenanceRequests = [];
@@ -8,7 +9,8 @@ let tenants = [];
 
 // ===== INITIALIZATION =====
 async function init() {
-    console.log(' Initializing Maintenance Management System...');
+    console.log('🔧 Initializing Maintenance Management System...');
+    console.log('API Base URL:', API_BASE_URL);
     showLoading(true);
     try {
         await loadAllData();
@@ -39,7 +41,7 @@ async function loadAllData() {
 async function fetchProperties() {
     try {
         console.log('🔄 Fetching properties...');
-        const response = await fetch('http://localhost:5000/api/properties');
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties`);
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
@@ -48,7 +50,10 @@ async function fetchProperties() {
         
         if (result && result.success && Array.isArray(result.data)) {
             properties = result.data;
-            console.log(` Loaded ${properties.length} properties`, properties);
+            console.log(`✅ Loaded ${properties.length} properties`, properties);
+        } else if (Array.isArray(result)) {
+            properties = result;
+            console.log(`✅ Loaded ${properties.length} properties (direct array)`);
         } else {
             console.error('❌ Invalid format');
             properties = getSampleProperties();
@@ -62,16 +67,19 @@ async function fetchProperties() {
 async function fetchUnits() {
     try {
         console.log('🔄 Fetching units...');
-        const response = await fetch('http://localhost:5000/api/units');
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/units`);
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const result = await response.json();
-        console.log('📦 Units response:', result);
+        console.log(' Units response:', result);
         
         if (result && result.success && Array.isArray(result.data)) {
             units = result.data;
             console.log(`✅ Loaded ${units.length} units`, units);
+        } else if (Array.isArray(result)) {
+            units = result;
+            console.log(`✅ Loaded ${units.length} units (direct array)`);
         } else {
             console.error('❌ Invalid format');
             units = getSampleUnits();
@@ -84,8 +92,8 @@ async function fetchUnits() {
 
 async function fetchTenants() {
     try {
-        console.log('🔄 Fetching tenants...');
-        const response = await fetch('http://localhost:5000/api/tenants');
+        console.log(' Fetching tenants...');
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/tenants`);
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
@@ -95,6 +103,9 @@ async function fetchTenants() {
         if (result && result.success && Array.isArray(result.data)) {
             tenants = result.data;
             console.log(`✅ Loaded ${tenants.length} tenants`, tenants);
+        } else if (Array.isArray(result)) {
+            tenants = result;
+            console.log(`✅ Loaded ${tenants.length} tenants (direct array)`);
         } else {
             console.error('❌ Invalid format');
             tenants = getSampleTenants();
@@ -107,7 +118,7 @@ async function fetchTenants() {
 
 async function fetchMaintenanceRequests() {
     try {
-        console.log('🔄 Fetching maintenance requests...');
+        console.log(' Fetching maintenance requests...');
         const response = await fetch(`${API_BASE_URL}`);
         const result = await response.json();
         
@@ -119,15 +130,16 @@ async function fetchMaintenanceRequests() {
             maintenanceRequests = [];
         }
         
-        console.log(`✅ Loaded ${maintenanceRequests.length} maintenance requests`);
+        console.log(` Loaded ${maintenanceRequests.length} maintenance requests`);
     } catch (error) {
         console.error('❌ Error:', error);
         maintenanceRequests = [];
     }
 }
 
-// ===== SAMPLE DATA =====
+// ===== SAMPLE DATA (FALLBACK) =====
 function getSampleProperties() {
+    console.warn(' Using sample properties data');
     return [
         { property_id: 1, property_name: 'Sunset Apartments' },
         { property_id: 2, property_name: 'Ocean View Complex' }
@@ -135,6 +147,7 @@ function getSampleProperties() {
 }
 
 function getSampleUnits() {
+    console.warn(' Using sample units data');
     return [
         { unit_id: 1, property_id: 1, unit_number: 'A-101' },
         { unit_id: 2, property_id: 2, unit_number: 'B-205' }
@@ -142,6 +155,7 @@ function getSampleUnits() {
 }
 
 function getSampleTenants() {
+    console.warn(' Using sample tenants data');
     return [
         { tenant_id: 1, full_name: 'James Mwangi', unit_id: 1 },
         { tenant_id: 2, full_name: 'Sarah Kimani', unit_id: 2 }
@@ -153,7 +167,7 @@ function populatePropertyDropdowns() {
     const propertySelect = document.getElementById('property');
     const filterProperty = document.getElementById('filterProperty');
     
-    console.log('📋 Populating dropdowns with', properties.length, 'properties');
+    console.log(' Populating dropdowns with', properties.length, 'properties');
     
     if (propertySelect) {
         propertySelect.innerHTML = '<option value="">Select Property</option>';
@@ -183,7 +197,7 @@ function populateUnitDropdowns() {
     
     unitSelect.innerHTML = '<option value="">Select Unit</option>';
     
-    console.log('📋 Populating units dropdown...');
+    console.log(' Populating units dropdown...');
     units.forEach(unit => {
         const prop = properties.find(p => p.property_id === unit.property_id);
         const option = document.createElement('option');
@@ -200,7 +214,7 @@ function populateTenantDropdowns() {
     
     tenantSelect.innerHTML = '<option value="">Select Tenant</option>';
     
-    console.log('📋 Populating tenants dropdown...');
+    console.log(' Populating tenants dropdown...');
     tenants.forEach(tenant => {
         const option = document.createElement('option');
         option.value = tenant.tenant_id;
@@ -417,10 +431,10 @@ async function saveRequest() {
     try {
         if (request_id) {
             await apiCall(`/${request_id}`, 'PUT', requestData);
-            showNotification('Maintenance request updated successfully', 'success');
+            showNotification('✅ Maintenance request updated successfully', 'success');
         } else {
             await apiCall('', 'POST', requestData);
-            showNotification('Maintenance request created successfully', 'success');
+            showNotification('✅ Maintenance request created successfully', 'success');
         }
 
         await fetchMaintenanceRequests();
@@ -429,7 +443,7 @@ async function saveRequest() {
         closeModal();
     } catch (error) {
         console.error('Failed to save:', error);
-        showNotification('Failed to save request: ' + error.message, 'error');
+        showNotification('❌ Failed to save request: ' + error.message, 'error');
     } finally {
         showLoading(false);
     }
@@ -441,14 +455,14 @@ async function deleteRequest(request_id) {
     showLoading(true);
     try {
         await apiCall(`/${request_id}`, 'DELETE');
-        showNotification('Maintenance request deleted successfully', 'success');
+        showNotification('✅ Maintenance request deleted successfully', 'success');
         
         await fetchMaintenanceRequests();
         renderTable();
         updateStats();
     } catch (error) {
         console.error('Failed to delete:', error);
-        showNotification('Failed to delete request: ' + error.message, 'error');
+        showNotification('❌ Failed to delete request: ' + error.message, 'error');
     } finally {
         showLoading(false);
     }

@@ -1,7 +1,6 @@
-
 const WhatsAppService = {
-    // Configuration
-    API_URL: 'http://localhost:5000/api/whatsapp',
+    // Configuration - Uses centralized API config
+    API_URL: `${API_CONFIG.BASE_URL}/api/whatsapp`,
     currentTenant: null,
     isConnected: false,
 
@@ -40,7 +39,7 @@ We're excited to have you as our tenant. If you need anything, don't hesitate to
 Enjoy your stay! 
 - Simamiakodi Management`,
 
-        maintenance: (tenant) => ` *MAINTENANCE UPDATE*
+        maintenance: (tenant) => `🔧 *MAINTENANCE UPDATE*
 
 Hello ${tenant.full_name},
 
@@ -48,10 +47,10 @@ We wanted to update you on your maintenance request for Unit ${tenant.unit_numbe
 
 Our team is working on it and will complete it soon.
 
-Thank you for your patience!
+Thank you for your patience! 
 - Simamiakodi Management`,
 
-        payment: (tenant) => ` *PAYMENT RECEIVED*
+        payment: (tenant) => `✅ *PAYMENT RECEIVED*
 
 Hello ${tenant.full_name},
 
@@ -91,6 +90,9 @@ If you have any concerns, please contact us.
      * Call this on page load
      */
     init: function() {
+        console.log('🟢 Initializing WhatsApp Service...');
+        console.log('API URL:', this.API_URL);
+        
         // Load WhatsApp HTML component
         this.loadComponent();
         
@@ -121,9 +123,10 @@ If you have any concerns, please contact us.
                 const div = document.createElement('div');
                 div.innerHTML = html;
                 document.body.appendChild(div);
+                console.log('✅ WhatsApp component loaded');
             })
             .catch(error => {
-                console.error('Error loading WhatsApp component:', error);
+                console.error('❌ Error loading WhatsApp component:', error);
             });
     },
 
@@ -148,6 +151,7 @@ If you have any concerns, please contact us.
                 statusDot.classList.add('green');
                 statusDot.classList.remove('red');
                 statusText.textContent = 'WhatsApp Connected';
+                console.log('✅ WhatsApp is connected');
             } else {
                 this.isConnected = false;
                 statusDiv.classList.add('disconnected');
@@ -155,9 +159,10 @@ If you have any concerns, please contact us.
                 statusDot.classList.add('red');
                 statusDot.classList.remove('green');
                 statusText.textContent = 'WhatsApp Not Connected';
+                console.log(' WhatsApp not connected');
             }
         } catch (error) {
-            console.error('Error checking WhatsApp status:', error);
+            console.error('❌ Error checking WhatsApp status:', error);
             this.isConnected = false;
             
             const statusDiv = document.getElementById('whatsappStatusIndicator');
@@ -260,7 +265,7 @@ If you have any concerns, please contact us.
             }
         } catch (error) {
             console.error('Error:', error);
-            this.showAlert('Error: Make sure the WhatsApp Node.js server is running on port 5000', 'error');
+            this.showAlert('Error: Make sure the WhatsApp Node.js server is running', 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -289,7 +294,7 @@ If you have any concerns, please contact us.
             const data = await response.json();
 
             if (data.success) {
-                this.showAlert(' Rent reminder sent!', 'success');
+                this.showAlert('✅ Rent reminder sent!', 'success');
                 return true;
             } else {
                 this.showAlert('Failed to send reminder', 'error');
@@ -324,7 +329,7 @@ If you have any concerns, please contact us.
             const data = await response.json();
 
             if (data.success) {
-                this.showAlert(' Payment confirmation sent!', 'success');
+                this.showAlert('✅ Payment confirmation sent!', 'success');
                 return true;
             } else {
                 this.showAlert('Failed to send confirmation', 'error');
@@ -362,7 +367,7 @@ If you have any concerns, please contact us.
             const data = await response.json();
 
             if (data.success) {
-                this.showAlert(` ${data.message}`, 'success');
+                this.showAlert(`✅ ${data.message}`, 'success');
             } else {
                 this.showAlert('Some reminders failed to send', 'error');
             }

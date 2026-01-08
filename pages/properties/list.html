@@ -348,221 +348,224 @@
     <script src="../../js/auth.js"></script>
     <script>
         // Protect this page
+protectPage();
 
-        let allProperties = [];
-        let propertyToDelete = null;
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
-        // Load properties on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadProperties();
-            setupEventListeners();
+let allProperties = [];
+let propertyToDelete = null;
+
+// Load properties on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadProperties();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('searchInput').addEventListener('input', filterProperties);
+    document.getElementById('typeFilter').addEventListener('change', filterProperties);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+}
+
+// Load properties from API
+async function loadProperties() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/properties`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
-        // Setup event listeners
-        function setupEventListeners() {
-            document.getElementById('searchInput').addEventListener('input', filterProperties);
-            document.getElementById('typeFilter').addEventListener('change', filterProperties);
-            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+        if (!response.ok) {
+            throw new Error('Failed to load properties');
         }
 
-        // Load properties from API
-        async function loadProperties() {
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch('http://localhost:5000/api/properties', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+        const result = await response.json();
+        allProperties = result.data || [];
 
-                if (!response.ok) {
-                    throw new Error('Failed to load properties');
-                }
+        document.getElementById('loadingState').style.display = 'none';
 
-                const result = await response.json();
-                allProperties = result.data || [];
-
-                document.getElementById('loadingState').style.display = 'none';
-
-                if (allProperties.length === 0) {
-                    document.getElementById('emptyState').style.display = 'block';
-                } else {
-                    displayProperties(allProperties);
-                }
-            } catch (error) {
-                console.error('Error loading properties:', error);
-                document.getElementById('loadingState').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Failed to load properties. Please try again.
-                    </div>
-                `;
-            }
+        if (allProperties.length === 0) {
+            document.getElementById('emptyState').style.display = 'block';
+        } else {
+            displayProperties(allProperties);
         }
+    } catch (error) {
+        console.error('Error loading properties:', error);
+        document.getElementById('loadingState').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Failed to load properties. Please try again.
+            </div>
+        `;
+    }
+}
 
-        // Display properties
-        function displayProperties(properties) {
-            const container = document.getElementById('propertiesList');
-            
-            if (properties.length === 0) {
-                container.innerHTML = `
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        No properties found matching your criteria.
-                    </div>
-                `;
-                return;
-            }
+// Display properties
+function displayProperties(properties) {
+    const container = document.getElementById('propertiesList');
+    
+    if (properties.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                No properties found matching your criteria.
+            </div>
+        `;
+        return;
+    }
 
-            container.innerHTML = properties.map(property => `
-                <div class="property-card">
-                    <div class="property-header">
-                        <div>
-                            <h3 class="property-title">${property.property_name || 'Unnamed Property'}</h3>
-                            <div class="property-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                ${property.location || 'Location not specified'}
-                            </div>
-                        </div>
-                        <span class="property-type">${formatPropertyType(property.property_type)}</span>
-                    </div>
-
-                    <div class="property-stats">
-                        <div class="stat-item">
-                            <div class="stat-icon blue">
-                                <i class="fas fa-door-open"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h6>Total Units</h6>
-                                <p>${property.total_units || 0}</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <div class="stat-icon green">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h6>Occupied</h6>
-                                <p>${property.occupied_units || 0}</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <div class="stat-icon orange">
-                                <i class="fas fa-door-closed"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h6>Vacant</h6>
-                                <p>${property.vacant_units || 0}</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <div class="stat-icon red">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h6>Tenants</h6>
-                                <p>${property.total_tenants || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button class="btn btn-action btn-view" onclick="viewProperty(${property.property_id})">
-                            <i class="fas fa-eye me-1"></i>View Details
-                        </button>
-                        <button class="btn btn-action btn-edit" onclick="editProperty(${property.property_id})">
-                            <i class="fas fa-edit me-1"></i>Edit
-                        </button>
-                        <button class="btn btn-action btn-delete" onclick="deleteProperty(${property.property_id})">
-                            <i class="fas fa-trash me-1"></i>Delete
-                        </button>
+    container.innerHTML = properties.map(property => `
+        <div class="property-card">
+            <div class="property-header">
+                <div>
+                    <h3 class="property-title">${property.property_name || 'Unnamed Property'}</h3>
+                    <div class="property-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${property.location || 'Location not specified'}
                     </div>
                 </div>
-            `).join('');
-        }
+                <span class="property-type">${formatPropertyType(property.property_type)}</span>
+            </div>
 
-        // Filter properties
-        function filterProperties() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const typeFilter = document.getElementById('typeFilter').value;
+            <div class="property-stats">
+                <div class="stat-item">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Units</h6>
+                        <p>${property.total_units || 0}</p>
+                    </div>
+                </div>
 
-            const filtered = allProperties.filter(property => {
-                const matchesSearch = !searchTerm || 
-                    property.property_name?.toLowerCase().includes(searchTerm) ||
-                    property.location?.toLowerCase().includes(searchTerm);
-                
-                const matchesType = !typeFilter || property.property_type === typeFilter;
+                <div class="stat-item">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Occupied</h6>
+                        <p>${property.occupied_units || 0}</p>
+                    </div>
+                </div>
 
-                return matchesSearch && matchesType;
-            });
+                <div class="stat-item">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-door-closed"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Vacant</h6>
+                        <p>${property.vacant_units || 0}</p>
+                    </div>
+                </div>
 
-            displayProperties(filtered);
-        }
+                <div class="stat-item">
+                    <div class="stat-icon red">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Tenants</h6>
+                        <p>${property.total_tenants || 0}</p>
+                    </div>
+                </div>
+            </div>
 
-        // Format property type
-        function formatPropertyType(type) {
-            if (!type) return 'N/A';
-            return type.split('_').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ');
-        }
+            <div class="action-buttons">
+                <button class="btn btn-action btn-view" onclick="viewProperty(${property.property_id})">
+                    <i class="fas fa-eye me-1"></i>View Details
+                </button>
+                <button class="btn btn-action btn-edit" onclick="editProperty(${property.property_id})">
+                    <i class="fas fa-edit me-1"></i>Edit
+                </button>
+                <button class="btn btn-action btn-delete" onclick="deleteProperty(${property.property_id})">
+                    <i class="fas fa-trash me-1"></i>Delete
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
 
-        // View property details
-        function viewProperty(id) {
-            window.location.href = `details.html?id=${id}`;
-        }
+// Filter properties
+function filterProperties() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value;
 
-        // Edit property
-        function editProperty(id) {
-            window.location.href = `edit.html?id=${id}`;
-        }
+    const filtered = allProperties.filter(property => {
+        const matchesSearch = !searchTerm || 
+            property.property_name?.toLowerCase().includes(searchTerm) ||
+            property.location?.toLowerCase().includes(searchTerm);
+        
+        const matchesType = !typeFilter || property.property_type === typeFilter;
 
-        // Delete property
-        function deleteProperty(id) {
-            propertyToDelete = id;
-            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            modal.show();
-        }
+        return matchesSearch && matchesType;
+    });
 
-        // Confirm delete
-        async function confirmDelete() {
-            if (!propertyToDelete) return;
+    displayProperties(filtered);
+}
 
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch(`http://localhost:5000/api/properties/${propertyToDelete}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+// Format property type
+function formatPropertyType(type) {
+    if (!type) return 'N/A';
+    return type.split('_').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+}
 
-                const result = await response.json();
+// View property details
+function viewProperty(id) {
+    window.location.href = `details.html?id=${id}`;
+}
 
-                if (response.ok) {
-                    // Close modal
-                    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-                    
-                    // Show success message
-                    alert('✅ Property deleted successfully!');
-                    
-                    // Reload properties
-                    loadProperties();
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Failed to delete property'));
-                }
-            } catch (error) {
-                console.error('Error deleting property:', error);
-                alert('❌ Failed to delete property. Please try again.');
+// Edit property
+function editProperty(id) {
+    window.location.href = `edit.html?id=${id}`;
+}
+
+// Delete property
+function deleteProperty(id) {
+    propertyToDelete = id;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Confirm delete
+async function confirmDelete() {
+    if (!propertyToDelete) return;
+
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/properties/${propertyToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
+        });
 
-            propertyToDelete = null;
+        const result = await response.json();
+
+        if (response.ok) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            
+            // Show success message
+            alert('✅ Property deleted successfully!');
+            
+            // Reload properties
+            loadProperties();
+        } else {
+            alert('❌ Error: ' + (result.error || 'Failed to delete property'));
         }
+    } catch (error) {
+        console.error('Error deleting property:', error);
+        alert('❌ Failed to delete property. Please try again.');
+    }
+
+    propertyToDelete = null;
+}
     </script>
 </body>
 </html>

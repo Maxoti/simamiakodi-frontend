@@ -3,7 +3,7 @@
 // ============================================
 
 // -------------------- CONFIGURATION --------------------
-const AUTH_API_URL = 'http://localhost:5000/api/auth';
+const AUTH_API_URL = `${API_CONFIG.BASE_URL}/api/auth`;
 const TOKEN_KEY = 'auth_token';
 const USER_DATA_KEY = 'user_data';
 const REMEMBER_ME_KEY = 'remember_me';

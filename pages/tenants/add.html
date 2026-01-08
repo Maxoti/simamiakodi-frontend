@@ -321,6 +321,8 @@
     <script src="../../js/auth.js"></script>
    <script>
     // Authentication Functions
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
+
 function protectPage() {
     const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
     
@@ -398,7 +400,7 @@ async function loadProperties() {
             return;
         }
         
-        const response = await fetch('http://localhost:5000/api/properties', {
+        const response = await fetch(`${API_URL}/properties`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -438,7 +440,7 @@ async function loadVacantUnits() {
     try {
         const token = getAuthToken();
         
-        const response = await fetch('http://localhost:5000/api/units/vacant', {
+        const response = await fetch(`${API_URL}/units/vacant`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -592,7 +594,7 @@ document.getElementById('add-tenant-form').addEventListener('submit', async (e) 
             throw new Error('Not authenticated. Please log in.');
         }
         
-        const response = await fetch('http://localhost:5000/api/tenants', {
+        const response = await fetch(`${API_URL}/tenants`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -320,223 +320,225 @@
     <!-- Custom JS -->
     <script src="../../js/auth.js"></script>
     <script>
-        // Protect this page
-        protectPage();
+      // Protect this page
+protectPage();
 
-        let allUnits = [];
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
-        // Show alert function
-        function showAlert(message, type = 'danger') {
-            const alertContainer = document.getElementById('alertContainer');
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type} alert-dismissible fade show`;
-            alert.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            alertContainer.appendChild(alert);
+let allUnits = [];
+
+// Show alert function
+function showAlert(message, type = 'danger') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadProperties();
+    loadAllUnits();
+    setupEventListeners();
+    
+    // Set today's date as default move-in date
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="move_in_date"]').value = today;
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('propertySelect').addEventListener('change', handlePropertyChange);
+    document.getElementById('unitSelect').addEventListener('change', handleUnitChange);
+}
+
+// Load properties
+async function loadProperties() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/properties`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to load properties');
+
+        const result = await response.json();
+        const properties = result.data || [];
+
+        const select = document.getElementById('propertySelect');
+        properties.forEach(property => {
+            const option = document.createElement('option');
+            option.value = property.property_id;
+            option.textContent = property.property_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading properties:', error);
+        showAlert('❌ Failed to load properties', 'danger');
+    }
+}
+
+// Load all units
+async function loadAllUnits() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/units`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to load units');
+
+        const result = await response.json();
+        allUnits = result.data || [];
+    } catch (error) {
+        console.error('Error loading units:', error);
+        showAlert('❌ Failed to load units', 'danger');
+    }
+}
+
+// Handle property selection change
+function handlePropertyChange(e) {
+    const propertyId = parseInt(e.target.value);
+    const unitSelect = document.getElementById('unitSelect');
+    
+    // Clear unit selection
+    unitSelect.innerHTML = '<option value="">Select Unit</option>';
+    document.getElementById('unitInfo').style.display = 'none';
+    
+    if (!propertyId) {
+        unitSelect.disabled = true;
+        return;
+    }
+
+    // Filter vacant units by property
+    const availableUnits = allUnits.filter(unit => 
+        unit.property_id === propertyId && !unit.is_occupied
+    );
+
+    if (availableUnits.length === 0) {
+        unitSelect.innerHTML = '<option value="">No vacant units available</option>';
+        unitSelect.disabled = true;
+        showAlert('⚠️ All units in this property are currently occupied', 'warning');
+        return;
+    }
+
+    // Populate unit dropdown
+    unitSelect.disabled = false;
+    availableUnits.forEach(unit => {
+        const option = document.createElement('option');
+        option.value = unit.unit_id;
+        option.textContent = `${unit.unit_number} - ${unit.house_type || 'N/A'} - KES ${formatMoney(unit.monthly_rent)}`;
+        option.dataset.unit = JSON.stringify(unit);
+        unitSelect.appendChild(option);
+    });
+}
+
+// Handle unit selection change
+function handleUnitChange(e) {
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    
+    if (!selectedOption.dataset.unit) {
+        document.getElementById('unitInfo').style.display = 'none';
+        return;
+    }
+
+    const unit = JSON.parse(selectedOption.dataset.unit);
+    
+    // Display unit info
+    document.getElementById('unitNumber').textContent = unit.unit_number;
+    document.getElementById('unitType').textContent = unit.house_type || 'N/A';
+    document.getElementById('unitBedrooms').textContent = unit.bedrooms || 'N/A';
+    document.getElementById('unitRent').textContent = `KES ${formatMoney(unit.monthly_rent)}`;
+    document.getElementById('unitInfo').style.display = 'block';
+}
+
+// Format money
+function formatMoney(amount) {
+    if (!amount) return '0.00';
+    return parseFloat(amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// Handle form submission
+document.getElementById('add-tenant-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+    
+    try {
+        const formData = new FormData(e.target);
+        
+        const tenantData = {
+            unit_id: parseInt(formData.get('unit_id')),
+            full_name: formData.get('full_name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            move_in_date: formData.get('move_in_date'),
+            move_out_date: formData.get('move_out_date') || null,
+            deposit_paid: formData.get('deposit_paid') ? parseFloat(formData.get('deposit_paid')) : 0,
+            rent_balance: formData.get('rent_balance') ? parseFloat(formData.get('rent_balance')) : 0,
+            emergency_contact_name: formData.get('emergency_contact_name') || null,
+            emergency_contact_phone: formData.get('emergency_contact_phone') || null,
+            is_active: formData.get('is_active') === 'on'
+        };
+        
+        console.log('Tenant Data:', tenantData);
+        
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/tenants`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(tenantData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showAlert('✅ Tenant added successfully!', 'success');
             
             setTimeout(() => {
-                alert.remove();
-            }, 5000);
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.location.href = 'list.html';
+            }, 1500);
+        } else {
+            showAlert('❌ Error: ' + (result.error || 'Failed to add tenant'), 'danger');
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
         }
-
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadProperties();
-            loadAllUnits();
-            setupEventListeners();
-            
-            // Set today's date as default move-in date
-            const today = new Date().toISOString().split('T')[0];
-            document.querySelector('input[name="move_in_date"]').value = today;
-        });
-
-        // Setup event listeners
-        function setupEventListeners() {
-            document.getElementById('propertySelect').addEventListener('change', handlePropertyChange);
-            document.getElementById('unitSelect').addEventListener('change', handleUnitChange);
-        }
-
-        // Load properties
-        async function loadProperties() {
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch('http://localhost:5000/api/properties', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) throw new Error('Failed to load properties');
-
-                const result = await response.json();
-                const properties = result.data || [];
-
-                const select = document.getElementById('propertySelect');
-                properties.forEach(property => {
-                    const option = document.createElement('option');
-                    option.value = property.property_id;
-                    option.textContent = property.property_name;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading properties:', error);
-                showAlert('❌ Failed to load properties', 'danger');
-            }
-        }
-
-        // Load all units
-        async function loadAllUnits() {
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch('http://localhost:5000/api/units', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) throw new Error('Failed to load units');
-
-                const result = await response.json();
-                allUnits = result.data || [];
-            } catch (error) {
-                console.error('Error loading units:', error);
-                showAlert('❌ Failed to load units', 'danger');
-            }
-        }
-
-        // Handle property selection change
-        function handlePropertyChange(e) {
-            const propertyId = parseInt(e.target.value);
-            const unitSelect = document.getElementById('unitSelect');
-            
-            // Clear unit selection
-            unitSelect.innerHTML = '<option value="">Select Unit</option>';
-            document.getElementById('unitInfo').style.display = 'none';
-            
-            if (!propertyId) {
-                unitSelect.disabled = true;
-                return;
-            }
-
-            // Filter vacant units by property
-            const availableUnits = allUnits.filter(unit => 
-                unit.property_id === propertyId && !unit.is_occupied
-            );
-
-            if (availableUnits.length === 0) {
-                unitSelect.innerHTML = '<option value="">No vacant units available</option>';
-                unitSelect.disabled = true;
-                showAlert('⚠️ All units in this property are currently occupied', 'warning');
-                return;
-            }
-
-            // Populate unit dropdown
-            unitSelect.disabled = false;
-            availableUnits.forEach(unit => {
-                const option = document.createElement('option');
-                option.value = unit.unit_id;
-                option.textContent = `${unit.unit_number} - ${unit.house_type || 'N/A'} - KES ${formatMoney(unit.monthly_rent)}`;
-                option.dataset.unit = JSON.stringify(unit);
-                unitSelect.appendChild(option);
-            });
-        }
-
-        // Handle unit selection change
-        function handleUnitChange(e) {
-            const selectedOption = e.target.options[e.target.selectedIndex];
-            
-            if (!selectedOption.dataset.unit) {
-                document.getElementById('unitInfo').style.display = 'none';
-                return;
-            }
-
-            const unit = JSON.parse(selectedOption.dataset.unit);
-            
-            // Display unit info
-            document.getElementById('unitNumber').textContent = unit.unit_number;
-            document.getElementById('unitType').textContent = unit.house_type || 'N/A';
-            document.getElementById('unitBedrooms').textContent = unit.bedrooms || 'N/A';
-            document.getElementById('unitRent').textContent = `KES ${formatMoney(unit.monthly_rent)}`;
-            document.getElementById('unitInfo').style.display = 'block';
-        }
-
-        // Format money
-        function formatMoney(amount) {
-            if (!amount) return '0.00';
-            return parseFloat(amount).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-
-        // Handle form submission
-        document.getElementById('add-tenant-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const originalBtnText = submitBtn.innerHTML;
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
-            
-            try {
-                const formData = new FormData(e.target);
-                
-                const tenantData = {
-                    unit_id: parseInt(formData.get('unit_id')),
-                    full_name: formData.get('full_name'),
-                    email: formData.get('email'),
-                    phone: formData.get('phone'),
-                    move_in_date: formData.get('move_in_date'),
-                    move_out_date: formData.get('move_out_date') || null,
-                    deposit_paid: formData.get('deposit_paid') ? parseFloat(formData.get('deposit_paid')) : 0,
-                    rent_balance: formData.get('rent_balance') ? parseFloat(formData.get('rent_balance')) : 0,
-                    emergency_contact_name: formData.get('emergency_contact_name') || null,
-                    emergency_contact_phone: formData.get('emergency_contact_phone') || null,
-                    is_active: formData.get('is_active') === 'on'
-                };
-                
-                console.log('Tenant Data:', tenantData);
-                
-                const token = getAuthToken();
-                
-                const response = await fetch('http://localhost:5000/api/tenants', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(tenantData)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showAlert('✅ Tenant added successfully!', 'success');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'list.html';
-                    }, 1500);
-                } else {
-                    showAlert('❌ Error: ' + (result.error || 'Failed to add tenant'), 'danger');
-                    
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('❌ Failed to add tenant. Please check your connection and try again.', 'danger');
-                
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
-        });
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('❌ Failed to add tenant. Please check your connection and try again.', 'danger');
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+});
     </script>
 </body>
 </html>

@@ -437,334 +437,336 @@
     <!-- Custom JS -->
     <script src="../../js/auth.js"></script>
     <script>
-        // Protect this page
-        protectPage();
+     // Protect this page
+protectPage();
 
-        let allPlans = [];
-        let filteredPlans = [];
-        let properties = {};
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadProperties();
-            setupEventListeners();
+let allPlans = [];
+let filteredPlans = [];
+let properties = {};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadProperties();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('searchInput').addEventListener('input', filterPlans);
+    document.getElementById('statusFilter').addEventListener('change', filterPlans);
+    document.getElementById('propertyFilter').addEventListener('change', filterPlans);
+    document.getElementById('frequencyFilter').addEventListener('change', filterPlans);
+    document.getElementById('sortSelect').addEventListener('change', sortAndDisplayPlans);
+    document.getElementById('clearFilters').addEventListener('click', clearFilters);
+}
+
+// Load properties for filter
+async function loadProperties() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/properties`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
-        // Setup event listeners
-        function setupEventListeners() {
-            document.getElementById('searchInput').addEventListener('input', filterPlans);
-            document.getElementById('statusFilter').addEventListener('change', filterPlans);
-            document.getElementById('propertyFilter').addEventListener('change', filterPlans);
-            document.getElementById('frequencyFilter').addEventListener('change', filterPlans);
-            document.getElementById('sortSelect').addEventListener('change', sortAndDisplayPlans);
-            document.getElementById('clearFilters').addEventListener('click', clearFilters);
-        }
+        if (!response.ok) return;
 
-        // Load properties for filter
-        async function loadProperties() {
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch('http://localhost:5000/api/properties', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+        const result = await response.json();
+        const propertiesArray = result.data || [];
 
-                if (!response.ok) return;
+        propertiesArray.forEach(prop => {
+            properties[prop.property_id] = prop.property_name;
+        });
 
-                const result = await response.json();
-                const propertiesArray = result.data || [];
+        const select = document.getElementById('propertyFilter');
+        propertiesArray.forEach(property => {
+            const option = document.createElement('option');
+            option.value = property.property_id;
+            option.textContent = property.property_name;
+            select.appendChild(option);
+        });
 
-                propertiesArray.forEach(prop => {
-                    properties[prop.property_id] = prop.property_name;
-                });
+        loadPlans();
+    } catch (error) {
+        console.error('Error loading properties:', error);
+        loadPlans();
+    }
+}
 
-                const select = document.getElementById('propertyFilter');
-                propertiesArray.forEach(property => {
-                    const option = document.createElement('option');
-                    option.value = property.property_id;
-                    option.textContent = property.property_name;
-                    select.appendChild(option);
-                });
-
-                loadPlans();
-            } catch (error) {
-                console.error('Error loading properties:', error);
-                loadPlans();
+// Load payment plans from API
+async function loadPlans() {
+    try {
+        const token = getAuthToken();
+        
+        const response = await fetch(`${API_URL}/payment-plans`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
+        });
+
+        if (!response.ok) throw new Error('Failed to load payment plans');
+
+        const result = await response.json();
+        allPlans = result.data || [];
+        
+        allPlans = allPlans.map(plan => ({
+            ...plan,
+            property_name: properties[plan.property_id] || 'Unknown Property',
+            progress: calculateProgress(plan)
+        }));
+        
+        filteredPlans = [...allPlans];
+        
+        updateStats();
+        sortAndDisplayPlans();
+        
+        document.getElementById('loadingState').style.display = 'none';
+    } catch (error) {
+        console.error('Error loading payment plans:', error);
+        document.getElementById('loadingState').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Failed to load payment plans. Please refresh the page.
+            </div>
+        `;
+    }
+}
+
+// Calculate progress percentage
+function calculateProgress(plan) {
+    if (!plan.total_amount || plan.total_amount === 0) return 0;
+    const paid = parseFloat(plan.amount_paid || 0);
+    const total = parseFloat(plan.total_amount);
+    return Math.round((paid / total) * 100);
+}
+
+// Update statistics
+function updateStats() {
+    const total = allPlans.length;
+    const active = allPlans.filter(p => p.status === 'active').length;
+    const totalBalance = allPlans.reduce((sum, p) => sum + parseFloat(p.balance || 0), 0);
+    
+    const today = new Date();
+    const overdue = allPlans.filter(p => {
+        if (p.status !== 'active' || !p.next_due_date) return false;
+        const dueDate = new Date(p.next_due_date);
+        return dueDate < today;
+    }).length;
+
+    document.getElementById('totalPlans').textContent = total;
+    document.getElementById('activePlans').textContent = active;
+    document.getElementById('totalBalance').textContent = `KES ${formatMoney(totalBalance)}`;
+    document.getElementById('overduePlans').textContent = overdue;
+}
+
+// Filter plans
+function filterPlans() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const propertyId = document.getElementById('propertyFilter').value;
+    const frequency = document.getElementById('frequencyFilter').value;
+
+    filteredPlans = allPlans.filter(plan => {
+        const matchesSearch = !searchTerm || 
+            (plan.tenant_name && plan.tenant_name.toLowerCase().includes(searchTerm));
+
+        const matchesStatus = !status || plan.status === status;
+        const matchesProperty = !propertyId || plan.property_id == propertyId;
+        const matchesFrequency = !frequency || plan.installment_frequency === frequency;
+
+        return matchesSearch && matchesStatus && matchesProperty && matchesFrequency;
+    });
+
+    sortAndDisplayPlans();
+}
+
+// Sort and display plans
+function sortAndDisplayPlans() {
+    const sortBy = document.getElementById('sortSelect').value;
+
+    filteredPlans.sort((a, b) => {
+        switch(sortBy) {
+            case 'date_desc':
+                return new Date(b.start_date) - new Date(a.start_date);
+            case 'date_asc':
+                return new Date(a.start_date) - new Date(b.start_date);
+            case 'balance_high':
+                return parseFloat(b.balance || 0) - parseFloat(a.balance || 0);
+            case 'balance_low':
+                return parseFloat(a.balance || 0) - parseFloat(b.balance || 0);
+            case 'tenant':
+                return (a.tenant_name || '').localeCompare(b.tenant_name || '');
+            default:
+                return 0;
         }
+    });
 
-        // Load payment plans from API
-        async function loadPlans() {
-            try {
-                const token = getAuthToken();
-                
-                const response = await fetch('http://localhost:5000/api/payment-plans', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+    displayPlans();
+}
 
-                if (!response.ok) throw new Error('Failed to load payment plans');
+// Display plans
+function displayPlans() {
+    const container = document.getElementById('plansList');
+    const emptyState = document.getElementById('emptyState');
 
-                const result = await response.json();
-                allPlans = result.data || [];
-                
-                allPlans = allPlans.map(plan => ({
-                    ...plan,
-                    property_name: properties[plan.property_id] || 'Unknown Property',
-                    progress: calculateProgress(plan)
-                }));
-                
-                filteredPlans = [...allPlans];
-                
-                updateStats();
-                sortAndDisplayPlans();
-                
-                document.getElementById('loadingState').style.display = 'none';
-            } catch (error) {
-                console.error('Error loading payment plans:', error);
-                document.getElementById('loadingState').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Failed to load payment plans. Please refresh the page.
-                    </div>
-                `;
-            }
-        }
+    const totalBalance = filteredPlans.reduce((sum, p) => sum + parseFloat(p.balance || 0), 0);
+    document.getElementById('resultsInfo').textContent = 
+        `Showing ${filteredPlans.length} of ${allPlans.length} plans (Total Balance: KES ${formatMoney(totalBalance)})`;
 
-        // Calculate progress percentage
-        function calculateProgress(plan) {
-            if (!plan.total_amount || plan.total_amount === 0) return 0;
-            const paid = parseFloat(plan.amount_paid || 0);
-            const total = parseFloat(plan.total_amount);
-            return Math.round((paid / total) * 100);
-        }
+    if (filteredPlans.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
 
-        // Update statistics
-        function updateStats() {
-            const total = allPlans.length;
-            const active = allPlans.filter(p => p.status === 'active').length;
-            const totalBalance = allPlans.reduce((sum, p) => sum + parseFloat(p.balance || 0), 0);
-            
-            const today = new Date();
-            const overdue = allPlans.filter(p => {
-                if (p.status !== 'active' || !p.next_due_date) return false;
-                const dueDate = new Date(p.next_due_date);
-                return dueDate < today;
-            }).length;
-
-            document.getElementById('totalPlans').textContent = total;
-            document.getElementById('activePlans').textContent = active;
-            document.getElementById('totalBalance').textContent = `KES ${formatMoney(totalBalance)}`;
-            document.getElementById('overduePlans').textContent = overdue;
-        }
-
-        // Filter plans
-        function filterPlans() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const status = document.getElementById('statusFilter').value;
-            const propertyId = document.getElementById('propertyFilter').value;
-            const frequency = document.getElementById('frequencyFilter').value;
-
-            filteredPlans = allPlans.filter(plan => {
-                const matchesSearch = !searchTerm || 
-                    (plan.tenant_name && plan.tenant_name.toLowerCase().includes(searchTerm));
-
-                const matchesStatus = !status || plan.status === status;
-                const matchesProperty = !propertyId || plan.property_id == propertyId;
-                const matchesFrequency = !frequency || plan.installment_frequency === frequency;
-
-                return matchesSearch && matchesStatus && matchesProperty && matchesFrequency;
-            });
-
-            sortAndDisplayPlans();
-        }
-
-        // Sort and display plans
-        function sortAndDisplayPlans() {
-            const sortBy = document.getElementById('sortSelect').value;
-
-            filteredPlans.sort((a, b) => {
-                switch(sortBy) {
-                    case 'date_desc':
-                        return new Date(b.start_date) - new Date(a.start_date);
-                    case 'date_asc':
-                        return new Date(a.start_date) - new Date(b.start_date);
-                    case 'balance_high':
-                        return parseFloat(b.balance || 0) - parseFloat(a.balance || 0);
-                    case 'balance_low':
-                        return parseFloat(a.balance || 0) - parseFloat(b.balance || 0);
-                    case 'tenant':
-                        return (a.tenant_name || '').localeCompare(b.tenant_name || '');
-                    default:
-                        return 0;
-                }
-            });
-
-            displayPlans();
-        }
-
-        // Display plans
-        function displayPlans() {
-            const container = document.getElementById('plansList');
-            const emptyState = document.getElementById('emptyState');
-
-            const totalBalance = filteredPlans.reduce((sum, p) => sum + parseFloat(p.balance || 0), 0);
-            document.getElementById('resultsInfo').textContent = 
-                `Showing ${filteredPlans.length} of ${allPlans.length} plans (Total Balance: KES ${formatMoney(totalBalance)})`;
-
-            if (filteredPlans.length === 0) {
-                container.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-            
-            container.innerHTML = filteredPlans.map(plan => {
-                const statusClass = getStatusClass(plan.status);
-                const isOverdue = isDateOverdue(plan.next_due_date) && plan.status === 'active';
-                
-                return `
-                    <div class="plan-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div class="plan-amount">KES ${formatMoney(plan.total_amount)}</div>
-                                    <span class="status-badge ${statusClass}">
-                                        ${capitalizeFirst(plan.status || 'active')}
-                                    </span>
-                                    ${isOverdue ? '<span class="status-badge status-overdue">OVERDUE</span>' : ''}
-                                </div>
-                                
-                                <div class="plan-tenant">${plan.tenant_name || 'Unknown Tenant'}</div>
-                                
-                                <div class="plan-details">
-                                    <div class="detail-item">
-                                        <i class="fas fa-building"></i>
-                                        <span>${plan.property_name || 'N/A'}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="fas fa-door-open"></i>
-                                        <span>Unit ${plan.unit_number || 'N/A'}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="fas fa-money-bill-wave"></i>
-                                        <span class="frequency-badge">${formatMoney(plan.installment_amount)}/${plan.installment_frequency}</span>
-                                    </div>
-                                </div>
-
-                                <div class="mt-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">
-                                            <strong class="plan-paid">Paid: KES ${formatMoney(plan.amount_paid)}</strong>
-                                        </small>
-                                        <small class="text-muted">
-                                            <strong class="plan-balance">Balance: KES ${formatMoney(plan.balance)}</strong>
-                                        </small>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" 
-                                             style="width: ${plan.progress}%" 
-                                             aria-valuenow="${plan.progress}" 
-                                             aria-valuemin="0" 
-                                             aria-valuemax="100">
-                                            ${plan.progress}%
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-calendar-alt me-1"></i>
-                                        ${formatDate(plan.start_date)} → ${plan.end_date ? formatDate(plan.end_date) : 'Ongoing'}
-                                        ${plan.next_due_date ? `<span class="ms-3"><i class="fas fa-clock me-1"></i>Next: ${formatDate(plan.next_due_date)}</span>` : ''}
-                                    </small>
-                                </div>
-
-                                ${plan.description ? `
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-sticky-note me-1"></i>${plan.description}
-                                    </small>
-                                </div>
-                                ` : ''}
+    emptyState.style.display = 'none';
+    
+    container.innerHTML = filteredPlans.map(plan => {
+        const statusClass = getStatusClass(plan.status);
+        const isOverdue = isDateOverdue(plan.next_due_date) && plan.status === 'active';
+        
+        return `
+            <div class="plan-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="plan-amount">KES ${formatMoney(plan.total_amount)}</div>
+                            <span class="status-badge ${statusClass}">
+                                ${capitalizeFirst(plan.status || 'active')}
+                            </span>
+                            ${isOverdue ? '<span class="status-badge status-overdue">OVERDUE</span>' : ''}
+                        </div>
+                        
+                        <div class="plan-tenant">${plan.tenant_name || 'Unknown Tenant'}</div>
+                        
+                        <div class="plan-details">
+                            <div class="detail-item">
+                                <i class="fas fa-building"></i>
+                                <span>${plan.property_name || 'N/A'}</span>
                             </div>
-                            
-                            <div class="action-buttons">
-                                <button class="btn-action btn-view" onclick="viewPlan(${plan.plan_id})" 
-                                        title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                            <div class="detail-item">
+                                <i class="fas fa-door-open"></i>
+                                <span>Unit ${plan.unit_number || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span class="frequency-badge">${formatMoney(plan.installment_amount)}/${plan.installment_frequency}</span>
                             </div>
                         </div>
+
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">
+                                    <strong class="plan-paid">Paid: KES ${formatMoney(plan.amount_paid)}</strong>
+                                </small>
+                                <small class="text-muted">
+                                    <strong class="plan-balance">Balance: KES ${formatMoney(plan.balance)}</strong>
+                                </small>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: ${plan.progress}%" 
+                                     aria-valuenow="${plan.progress}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    ${plan.progress}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                ${formatDate(plan.start_date)} → ${plan.end_date ? formatDate(plan.end_date) : 'Ongoing'}
+                                ${plan.next_due_date ? `<span class="ms-3"><i class="fas fa-clock me-1"></i>Next: ${formatDate(plan.next_due_date)}</span>` : ''}
+                            </small>
+                        </div>
+
+                        ${plan.description ? `
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-sticky-note me-1"></i>${plan.description}
+                            </small>
+                        </div>
+                        ` : ''}
                     </div>
-                `;
-            }).join('');
-        }
+                    
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" onclick="viewPlan(${plan.plan_id})" 
+                                title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
-        // Get status CSS class
-        function getStatusClass(status) {
-            const map = {
-                'active': 'status-active',
-                'completed': 'status-completed',
-                'overdue': 'status-overdue',
-                'cancelled': 'status-cancelled'
-            };
-            return map[status] || 'status-active';
-        }
+// Get status CSS class
+function getStatusClass(status) {
+    const map = {
+        'active': 'status-active',
+        'completed': 'status-completed',
+        'overdue': 'status-overdue',
+        'cancelled': 'status-cancelled'
+    };
+    return map[status] || 'status-active';
+}
 
-        // Check if date is overdue
-        function isDateOverdue(dateString) {
-            if (!dateString) return false;
-            const date = new Date(dateString);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return date < today;
-        }
+// Check if date is overdue
+function isDateOverdue(dateString) {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+}
 
-        // Format money
-        function formatMoney(amount) {
-            if (!amount) return '0.00';
-            return parseFloat(amount).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
+// Format money
+function formatMoney(amount) {
+    if (!amount) return '0.00';
+    return parseFloat(amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
 
-        // Format date
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            });
-        }
+// Format date
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
 
-        // Capitalize first letter
-        function capitalizeFirst(str) {
-            if (!str) return '';
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
+// Capitalize first letter
+function capitalizeFirst(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
-        // Clear filters
-        function clearFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = '';
-            document.getElementById('propertyFilter').value = '';
-            document.getElementById('frequencyFilter').value = '';
-            document.getElementById('sortSelect').value = 'date_desc';
-            filterPlans();
-        }
+// Clear filters
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('propertyFilter').value = '';
+    document.getElementById('frequencyFilter').value = '';
+    document.getElementById('sortSelect').value = 'date_desc';
+    filterPlans();
+}
 
-        // View plan details
-        function viewPlan(id) {
-            window.location.href = `plan-details.html?id=${id}`;
-        }
+// View plan details
+function viewPlan(id) {
+    window.location.href = `plan-details.html?id=${id}`;
+}
     </script>
 </body>
 </html>

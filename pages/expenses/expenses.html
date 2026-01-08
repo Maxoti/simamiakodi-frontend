@@ -465,363 +465,365 @@
             </div>
         </div>
     </div>
-
+<script src="../../js/config.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
     <script src="../../js/auth.js"></script>
     <script>
-        protectPage();
+    protectPage();
 
-        let allExpenses = [];
-        let filteredExpenses = [];
-        let properties = {};
-        let deleteModal;
-        let expenseToDelete = null;
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            loadProperties();
-            setupEventListeners();
+let allExpenses = [];
+let filteredExpenses = [];
+let properties = {};
+let deleteModal;
+let expenseToDelete = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    loadProperties();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    document.getElementById('searchInput').addEventListener('input', filterExpenses);
+    document.getElementById('propertyFilter').addEventListener('change', filterExpenses);
+    document.getElementById('typeFilter').addEventListener('change', filterExpenses);
+    document.getElementById('monthFilter').addEventListener('change', filterExpenses);
+    document.getElementById('sortSelect').addEventListener('change', sortAndDisplayExpenses);
+    document.getElementById('clearFilters').addEventListener('click', clearFilters);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+}
+
+async function loadProperties() {
+    try {
+        const token = getAuthToken();
+        const response = await fetch(`${API_URL}/properties`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        function setupEventListeners() {
-            document.getElementById('searchInput').addEventListener('input', filterExpenses);
-            document.getElementById('propertyFilter').addEventListener('change', filterExpenses);
-            document.getElementById('typeFilter').addEventListener('change', filterExpenses);
-            document.getElementById('monthFilter').addEventListener('change', filterExpenses);
-            document.getElementById('sortSelect').addEventListener('change', sortAndDisplayExpenses);
-            document.getElementById('clearFilters').addEventListener('click', clearFilters);
-            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+        if (!response.ok) return;
+
+        const result = await response.json();
+        const propertiesArray = result.data || [];
+
+        propertiesArray.forEach(prop => {
+            properties[prop.property_id] = prop.property_name;
+        });
+
+        const select = document.getElementById('propertyFilter');
+        propertiesArray.forEach(property => {
+            const option = document.createElement('option');
+            option.value = property.property_id;
+            option.textContent = property.property_name;
+            select.appendChild(option);
+        });
+
+        loadExpenses();
+    } catch (error) {
+        console.error('Error loading properties:', error);
+        loadExpenses();
+    }
+}
+
+async function loadExpenses() {
+    try {
+        const token = getAuthToken();
+        const response = await fetch(`${API_URL}/expenses`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Failed to load expenses');
+
+        const result = await response.json();
+        allExpenses = result.data || [];
+        
+        allExpenses = allExpenses.map(expense => ({
+            ...expense,
+            property_name: properties[expense.property_id] || 'Unknown Property'
+        }));
+        
+        filteredExpenses = [...allExpenses];
+        
+        updateStats();
+        updateCategoryBreakdown();
+        sortAndDisplayExpenses();
+        
+        document.getElementById('loadingState').style.display = 'none';
+    } catch (error) {
+        console.error('Error loading expenses:', error);
+        document.getElementById('loadingState').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Failed to load expenses. Please refresh the page.
+            </div>
+        `;
+    }
+}
+
+function updateStats() {
+    const total = allExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+    
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const monthlyTotal = allExpenses
+        .filter(e => e.expense_date && e.expense_date.startsWith(currentMonth))
+        .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+    
+    const count = allExpenses.length;
+    const avg = count > 0 ? total / count : 0;
+
+    document.getElementById('totalExpenses').textContent = `KES ${formatMoney(total)}`;
+    document.getElementById('monthlyExpenses').textContent = `KES ${formatMoney(monthlyTotal)}`;
+    document.getElementById('expenseCount').textContent = count;
+    document.getElementById('avgExpense').textContent = `KES ${formatMoney(avg)}`;
+}
+
+function updateCategoryBreakdown() {
+    if (filteredExpenses.length === 0) {
+        document.getElementById('categoryBreakdown').style.display = 'none';
+        return;
+    }
+
+    const breakdown = {};
+    filteredExpenses.forEach(expense => {
+        const type = expense.expense_type || 'Other';
+        if (!breakdown[type]) {
+            breakdown[type] = 0;
         }
+        breakdown[type] += parseFloat(expense.amount || 0);
+    });
 
-        async function loadProperties() {
-            try {
-                const token = getAuthToken();
-                const response = await fetch('http://localhost:5000/api/properties', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+    const sorted = Object.entries(breakdown).sort((a, b) => b[1] - a[1]);
 
-                if (!response.ok) return;
+    const html = sorted.map(([type, amount]) => `
+        <div class="category-item">
+            <span class="category-name">${type}</span>
+            <span class="category-amount">KES ${formatMoney(amount)}</span>
+        </div>
+    `).join('');
 
-                const result = await response.json();
-                const propertiesArray = result.data || [];
+    document.getElementById('categoryList').innerHTML = html;
+    document.getElementById('categoryBreakdown').style.display = 'block';
+}
 
-                propertiesArray.forEach(prop => {
-                    properties[prop.property_id] = prop.property_name;
-                });
+function filterExpenses() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const propertyId = document.getElementById('propertyFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const month = document.getElementById('monthFilter').value;
 
-                const select = document.getElementById('propertyFilter');
-                propertiesArray.forEach(property => {
-                    const option = document.createElement('option');
-                    option.value = property.property_id;
-                    option.textContent = property.property_name;
-                    select.appendChild(option);
-                });
+    filteredExpenses = allExpenses.filter(expense => {
+        const matchesSearch = !searchTerm || 
+            (expense.description && expense.description.toLowerCase().includes(searchTerm)) ||
+            (expense.vendor_name && expense.vendor_name.toLowerCase().includes(searchTerm)) ||
+            (expense.expense_type && expense.expense_type.toLowerCase().includes(searchTerm));
 
-                loadExpenses();
-            } catch (error) {
-                console.error('Error loading properties:', error);
-                loadExpenses();
-            }
+        const matchesProperty = !propertyId || expense.property_id == propertyId;
+        const matchesType = !type || expense.expense_type === type;
+        const matchesMonth = !month || 
+            (expense.expense_date && expense.expense_date.startsWith(month));
+
+        return matchesSearch && matchesProperty && matchesType && matchesMonth;
+    });
+
+    updateCategoryBreakdown();
+    sortAndDisplayExpenses();
+}
+
+function sortAndDisplayExpenses() {
+    const sortBy = document.getElementById('sortSelect').value;
+
+    filteredExpenses.sort((a, b) => {
+        switch(sortBy) {
+            case 'date_desc':
+                return new Date(b.expense_date) - new Date(a.expense_date);
+            case 'date_asc':
+                return new Date(a.expense_date) - new Date(b.expense_date);
+            case 'amount_high':
+                return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
+            case 'amount_low':
+                return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
+            case 'type':
+                return (a.expense_type || '').localeCompare(b.expense_type || '');
+            default:
+                return 0;
         }
+    });
 
-        async function loadExpenses() {
-            try {
-                const token = getAuthToken();
-                const response = await fetch('http://localhost:5000/api/expenses', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+    displayExpenses();
+}
 
-                if (!response.ok) throw new Error('Failed to load expenses');
+function displayExpenses() {
+    const container = document.getElementById('expensesList');
+    const emptyState = document.getElementById('emptyState');
 
-                const result = await response.json();
-                allExpenses = result.data || [];
-                
-                allExpenses = allExpenses.map(expense => ({
-                    ...expense,
-                    property_name: properties[expense.property_id] || 'Unknown Property'
-                }));
-                
-                filteredExpenses = [...allExpenses];
-                
-                updateStats();
-                updateCategoryBreakdown();
-                sortAndDisplayExpenses();
-                
-                document.getElementById('loadingState').style.display = 'none';
-            } catch (error) {
-                console.error('Error loading expenses:', error);
-                document.getElementById('loadingState').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Failed to load expenses. Please refresh the page.
-                    </div>
-                `;
-            }
-        }
+    const totalAmount = filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+    document.getElementById('resultsInfo').textContent = 
+        `Showing ${filteredExpenses.length} of ${allExpenses.length} expenses (Total: KES ${formatMoney(totalAmount)})`;
 
-        function updateStats() {
-            const total = allExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-            
-            const now = new Date();
-            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const monthlyTotal = allExpenses
-                .filter(e => e.expense_date && e.expense_date.startsWith(currentMonth))
-                .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-            
-            const count = allExpenses.length;
-            const avg = count > 0 ? total / count : 0;
+    if (filteredExpenses.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
 
-            document.getElementById('totalExpenses').textContent = `KES ${formatMoney(total)}`;
-            document.getElementById('monthlyExpenses').textContent = `KES ${formatMoney(monthlyTotal)}`;
-            document.getElementById('expenseCount').textContent = count;
-            document.getElementById('avgExpense').textContent = `KES ${formatMoney(avg)}`;
-        }
-
-        function updateCategoryBreakdown() {
-            if (filteredExpenses.length === 0) {
-                document.getElementById('categoryBreakdown').style.display = 'none';
-                return;
-            }
-
-            const breakdown = {};
-            filteredExpenses.forEach(expense => {
-                const type = expense.expense_type || 'Other';
-                if (!breakdown[type]) {
-                    breakdown[type] = 0;
-                }
-                breakdown[type] += parseFloat(expense.amount || 0);
-            });
-
-            const sorted = Object.entries(breakdown).sort((a, b) => b[1] - a[1]);
-
-            const html = sorted.map(([type, amount]) => `
-                <div class="category-item">
-                    <span class="category-name">${type}</span>
-                    <span class="category-amount">KES ${formatMoney(amount)}</span>
-                </div>
-            `).join('');
-
-            document.getElementById('categoryList').innerHTML = html;
-            document.getElementById('categoryBreakdown').style.display = 'block';
-        }
-
-        function filterExpenses() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const propertyId = document.getElementById('propertyFilter').value;
-            const type = document.getElementById('typeFilter').value;
-            const month = document.getElementById('monthFilter').value;
-
-            filteredExpenses = allExpenses.filter(expense => {
-                const matchesSearch = !searchTerm || 
-                    (expense.description && expense.description.toLowerCase().includes(searchTerm)) ||
-                    (expense.vendor_name && expense.vendor_name.toLowerCase().includes(searchTerm)) ||
-                    (expense.expense_type && expense.expense_type.toLowerCase().includes(searchTerm));
-
-                const matchesProperty = !propertyId || expense.property_id == propertyId;
-                const matchesType = !type || expense.expense_type === type;
-                const matchesMonth = !month || 
-                    (expense.expense_date && expense.expense_date.startsWith(month));
-
-                return matchesSearch && matchesProperty && matchesType && matchesMonth;
-            });
-
-            updateCategoryBreakdown();
-            sortAndDisplayExpenses();
-        }
-
-        function sortAndDisplayExpenses() {
-            const sortBy = document.getElementById('sortSelect').value;
-
-            filteredExpenses.sort((a, b) => {
-                switch(sortBy) {
-                    case 'date_desc':
-                        return new Date(b.expense_date) - new Date(a.expense_date);
-                    case 'date_asc':
-                        return new Date(a.expense_date) - new Date(b.expense_date);
-                    case 'amount_high':
-                        return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
-                    case 'amount_low':
-                        return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
-                    case 'type':
-                        return (a.expense_type || '').localeCompare(b.expense_type || '');
-                    default:
-                        return 0;
-                }
-            });
-
-            displayExpenses();
-        }
-
-        function displayExpenses() {
-            const container = document.getElementById('expensesList');
-            const emptyState = document.getElementById('emptyState');
-
-            const totalAmount = filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-            document.getElementById('resultsInfo').textContent = 
-                `Showing ${filteredExpenses.length} of ${allExpenses.length} expenses (Total: KES ${formatMoney(totalAmount)})`;
-
-            if (filteredExpenses.length === 0) {
-                container.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-            
-            container.innerHTML = filteredExpenses.map(expense => {
-                const typeClass = getTypeClass(expense.expense_type);
-                
-                return `
-                    <div class="expense-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div class="expense-amount">KES ${formatMoney(expense.amount)}</div>
-                                    <span class="expense-type ${typeClass}">
-                                        ${expense.expense_type || 'Other'}
-                                    </span>
-                                </div>
-                                
-                                <div class="expense-details">
-                                    <div class="detail-item">
-                                        <i class="fas fa-building"></i>
-                                        <span>${expense.property_name || 'N/A'}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="fas fa-calendar"></i>
-                                        <span>${formatDate(expense.expense_date)}</span>
-                                    </div>
-                                    ${expense.vendor_name ? `
-                                    <div class="detail-item">
-                                        <i class="fas fa-user-tie"></i>
-                                        <span>${expense.vendor_name}</span>
-                                    </div>
-                                    ` : ''}
-                                    ${expense.receipt_number ? `
-                                    <div class="detail-item">
-                                        <i class="fas fa-hashtag"></i>
-                                        <span>${expense.receipt_number}</span>
-                                    </div>
-                                    ` : ''}
-                                </div>
-                                
-                                ${expense.description ? `
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-sticky-note me-1"></i>${expense.description}
-                                    </small>
-                                </div>
-                                ` : ''}
-                            </div>
-                            
-                            <div class="action-buttons">
-                                <button class="btn-action btn-edit" onclick="editExpense(${expense.expense_id})" 
-                                        title="Edit Expense">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn-action btn-delete" onclick="deleteExpense(${expense.expense_id}, '${expense.expense_type}', ${expense.amount})" 
-                                        title="Delete Expense">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+    emptyState.style.display = 'none';
+    
+    container.innerHTML = filteredExpenses.map(expense => {
+        const typeClass = getTypeClass(expense.expense_type);
+        
+        return `
+            <div class="expense-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="expense-amount">KES ${formatMoney(expense.amount)}</div>
+                            <span class="expense-type ${typeClass}">
+                                ${expense.expense_type || 'Other'}
+                            </span>
                         </div>
+                        
+                        <div class="expense-details">
+                            <div class="detail-item">
+                                <i class="fas fa-building"></i>
+                                <span>${expense.property_name || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>${formatDate(expense.expense_date)}</span>
+                            </div>
+                            ${expense.vendor_name ? `
+                            <div class="detail-item">
+                                <i class="fas fa-user-tie"></i>
+                                <span>${expense.vendor_name}</span>
+                            </div>
+                            ` : ''}
+                            ${expense.receipt_number ? `
+                            <div class="detail-item">
+                                <i class="fas fa-hashtag"></i>
+                                <span>${expense.receipt_number}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${expense.description ? `
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-sticky-note me-1"></i>${expense.description}
+                            </small>
+                        </div>
+                        ` : ''}
                     </div>
-                `;
-            }).join('');
-        }
-
-        function getTypeClass(type) {
-            if (!type) return 'type-other';
-            const lower = type.toLowerCase();
-            if (lower.includes('maintenance')) return 'type-maintenance';
-            if (lower.includes('utilities') || lower.includes('utility')) return 'type-utilities';
-            if (lower.includes('repair')) return 'type-repairs';
-            if (lower.includes('clean')) return 'type-cleaning';
-            if (lower.includes('security')) return 'type-security';
-            return 'type-other';
-        }
-
-        function formatMoney(amount) {
-            if (!amount) return '0.00';
-            return parseFloat(amount).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            });
-        }
-
-        function clearFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('propertyFilter').value = '';
-            document.getElementById('typeFilter').value = '';
-            document.getElementById('monthFilter').value = '';
-            document.getElementById('sortSelect').value = 'date_desc';
-            filterExpenses();
-        }
-
-        function editExpense(id) {
-            window.location.href = `add-expense.html?id=${id}`;
-        }
-
-        function deleteExpense(id, type, amount) {
-            expenseToDelete = id;
-            document.getElementById('deleteExpenseInfo').textContent = 
-                `${type} - KES ${formatMoney(amount)}`;
-            deleteModal.show();
-        }
-
-        async function confirmDelete() {
-            if (!expenseToDelete) return;
-
-            const btn = document.getElementById('confirmDeleteBtn');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
-
-            try {
-                const token = getAuthToken();
-                const response = await fetch(`http://localhost:5000/api/expenses/${expenseToDelete}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    deleteModal.hide();
-                    await loadExpenses();
                     
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success alert-dismissible fade show';
-                    alert.innerHTML = `
-                        ✅ Expense deleted successfully!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
-                    
-                    setTimeout(() => alert.remove(), 3000);
-                } else {
-                    throw new Error('Failed to delete expense');
-                }
-            } catch (error) {
-                console.error('Error deleting expense:', error);
-                alert('Failed to delete expense. Please try again.');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-                expenseToDelete = null;
-            }
+                    <div class="action-buttons">
+                        <button class="btn-action btn-edit" onclick="editExpense(${expense.expense_id})" 
+                                title="Edit Expense">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="deleteExpense(${expense.expense_id}, '${expense.expense_type}', ${expense.amount})" 
+                                title="Delete Expense">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getTypeClass(type) {
+    if (!type) return 'type-other';
+    const lower = type.toLowerCase();
+    if (lower.includes('maintenance')) return 'type-maintenance';
+    if (lower.includes('utilities') || lower.includes('utility')) return 'type-utilities';
+    if (lower.includes('repair')) return 'type-repairs';
+    if (lower.includes('clean')) return 'type-cleaning';
+    if (lower.includes('security')) return 'type-security';
+    return 'type-other';
+}
+
+function formatMoney(amount) {
+    if (!amount) return '0.00';
+    return parseFloat(amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('propertyFilter').value = '';
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('monthFilter').value = '';
+    document.getElementById('sortSelect').value = 'date_desc';
+    filterExpenses();
+}
+
+function editExpense(id) {
+    window.location.href = `add-expense.html?id=${id}`;
+}
+
+function deleteExpense(id, type, amount) {
+    expenseToDelete = id;
+    document.getElementById('deleteExpenseInfo').textContent = 
+        `${type} - KES ${formatMoney(amount)}`;
+    deleteModal.show();
+}
+
+async function confirmDelete() {
+    if (!expenseToDelete) return;
+
+    const btn = document.getElementById('confirmDeleteBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+
+    try {
+        const token = getAuthToken();
+        const response = await fetch(`${API_URL}/expenses/${expenseToDelete}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            deleteModal.hide();
+            await loadExpenses();
+            
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                ✅ Expense deleted successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
+            
+            setTimeout(() => alert.remove(), 3000);
+        } else {
+            throw new Error('Failed to delete expense');
         }
-    </script>
+    } catch (error) {
+        console.error('Error deleting expense:', error);
+        alert('Failed to delete expense. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        expenseToDelete = null;
+    }
+}
+</script>
 </body>
 </html>

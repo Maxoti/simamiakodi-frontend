@@ -315,193 +315,195 @@
    <!-- Bootstrap JS -->
 
 <script>
-    // Authentication Functions
-    function protectPage() {
-        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    const API_URL = `${API_CONFIG.BASE_URL}/api`;
+
+// Authentication Functions
+function protectPage() {
+    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    
+    if (!token) {
+        window.location.href = '/pages/auth/login.html';
+        return false;
+    }
+    return true;
+}
+
+function getAuthToken() {
+    return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+}
+
+// Protect this page on load
+if (!protectPage()) {
+    throw new Error('Not authenticated');
+}
+
+// Show alert function
+function showAlert(message, type = 'danger') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Load properties on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadProperties();
+});
+
+// Load properties for dropdown
+async function loadProperties() {
+    try {
+        const token = getAuthToken();
         
         if (!token) {
-            window.location.href = '/pages/auth/login.html';
-            return false;
+            showAlert('Not authenticated. Please log in.', 'danger');
+            setTimeout(() => {
+                window.location.href = '/pages/auth/login.html';
+            }, 1500);
+            return;
         }
-        return true;
-    }
-
-    function getAuthToken() {
-        return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-    }
-
-    // Protect this page on load
-    if (!protectPage()) {
-        throw new Error('Not authenticated');
-    }
-
-    // Show alert function
-    function showAlert(message, type = 'danger') {
-        const alertContainer = document.getElementById('alertContainer');
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show`;
-        alert.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        alertContainer.appendChild(alert);
         
-        setTimeout(() => {
-            alert.remove();
-        }, 5000);
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // Load properties on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        loadProperties();
-    });
-
-    // Load properties for dropdown
-    async function loadProperties() {
-        try {
-            const token = getAuthToken();
-            
-            if (!token) {
-                showAlert('Not authenticated. Please log in.', 'danger');
-                setTimeout(() => {
-                    window.location.href = '/pages/auth/login.html';
-                }, 1500);
-                return;
+        const response = await fetch(`${API_URL}/properties`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
-            
-            const response = await fetch('http://localhost:5000/api/properties', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+        });
 
-            if (!response.ok) {
-                throw new Error('Failed to load properties');
-            }
-
-            const result = await response.json();
-            const properties = result.data || [];
-
-            const select = document.getElementById('propertySelect');
-            
-            if (properties.length === 0) {
-                select.innerHTML = '<option value="">No properties available</option>';
-                select.disabled = true;
-                showAlert('⚠️ No properties found. Please add a property first.', 'warning');
-                return;
-            }
-
-            // Clear the default option
-            select.innerHTML = '<option value="">Choose a property...</option>';
-
-            properties.forEach(property => {
-                const option = document.createElement('option');
-                option.value = property.property_id;
-                option.textContent = `${property.property_name} (${property.location || 'No location'})`;
-                select.appendChild(option);
-            });
-
-            console.log(`Loaded ${properties.length} properties`);
-        } catch (error) {
-            console.error('Error loading properties:', error);
-            showAlert('❌ Failed to load properties. Please refresh the page.', 'danger');
+        if (!response.ok) {
+            throw new Error('Failed to load properties');
         }
-    }
 
-    // Handle form submission
-    document.getElementById('add-unit-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
+        const result = await response.json();
+        const properties = result.data || [];
+
+        const select = document.getElementById('propertySelect');
         
-        const submitBtn = document.getElementById('submitBtn');
-        const originalBtnText = submitBtn.innerHTML;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
-        
-        try {
-            const formData = new FormData(e.target);
-            
-            // Validate property selection
-            const propertyId = parseInt(formData.get('property_id'));
-            if (!propertyId) {
-                throw new Error('Please select a property');
-            }
-            
-            // Get features as array
-            const features = formData.getAll('features');
-            
-            // Build unit object
-            const unitData = {
-                property_id: propertyId,
-                unit_number: formData.get('unit_number')?.trim(),
-                house_type: formData.get('house_type'),
-                monthly_rent: parseFloat(formData.get('monthly_rent')),
-                floor: formData.get('floor') ? parseInt(formData.get('floor')) : null,
-                bedrooms: parseInt(formData.get('bedrooms')) || 0,
-                bathrooms: parseFloat(formData.get('bathrooms')) || 0,
-                square_feet: formData.get('square_feet') ? parseFloat(formData.get('square_feet')) : null,
-                security_deposit: formData.get('security_deposit') ? parseFloat(formData.get('security_deposit')) : null,
-                is_occupied: formData.get('is_occupied') === 'true',
-                status: formData.get('status') || 'available',
-                features: features.length > 0 ? JSON.stringify(features) : null,
-                description: formData.get('description')?.trim() || null
-            };
-            
-            console.log('Submitting Unit Data:', unitData);
-            
-            // Validate required fields
-            if (!unitData.unit_number) {
-                throw new Error('Unit number is required');
-            }
-            if (!unitData.house_type) {
-                throw new Error('Unit type is required');
-            }
-            if (!unitData.monthly_rent || unitData.monthly_rent <= 0) {
-                throw new Error('Valid monthly rent is required');
-            }
-            
-            // Submit to backend API
-            const token = getAuthToken();
-            
-            if (!token) {
-                throw new Error('Not authenticated. Please log in.');
-            }
-            
-            const response = await fetch('http://localhost:5000/api/units', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(unitData)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                showAlert('✅ Unit added successfully!', 'success');
-                
-                // Clear form
-                e.target.reset();
-                
-                // Redirect after 1.5 seconds
-                setTimeout(() => {
-                    window.location.href = 'list.html';
-                }, 1500);
-            } else {
-                throw new Error(result.error || result.message || 'Failed to add unit');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showAlert('❌ Error: ' + error.message, 'danger');
-        } finally {
-            // Re-enable button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
+        if (properties.length === 0) {
+            select.innerHTML = '<option value="">No properties available</option>';
+            select.disabled = true;
+            showAlert('⚠️ No properties found. Please add a property first.', 'warning');
+            return;
         }
-    });
+
+        // Clear the default option
+        select.innerHTML = '<option value="">Choose a property...</option>';
+
+        properties.forEach(property => {
+            const option = document.createElement('option');
+            option.value = property.property_id;
+            option.textContent = `${property.property_name} (${property.location || 'No location'})`;
+            select.appendChild(option);
+        });
+
+        console.log(`Loaded ${properties.length} properties`);
+    } catch (error) {
+        console.error('Error loading properties:', error);
+        showAlert('❌ Failed to load properties. Please refresh the page.', 'danger');
+    }
+}
+
+// Handle form submission
+document.getElementById('add-unit-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    
+    try {
+        const formData = new FormData(e.target);
+        
+        // Validate property selection
+        const propertyId = parseInt(formData.get('property_id'));
+        if (!propertyId) {
+            throw new Error('Please select a property');
+        }
+        
+        // Get features as array
+        const features = formData.getAll('features');
+        
+        // Build unit object
+        const unitData = {
+            property_id: propertyId,
+            unit_number: formData.get('unit_number')?.trim(),
+            house_type: formData.get('house_type'),
+            monthly_rent: parseFloat(formData.get('monthly_rent')),
+            floor: formData.get('floor') ? parseInt(formData.get('floor')) : null,
+            bedrooms: parseInt(formData.get('bedrooms')) || 0,
+            bathrooms: parseFloat(formData.get('bathrooms')) || 0,
+            square_feet: formData.get('square_feet') ? parseFloat(formData.get('square_feet')) : null,
+            security_deposit: formData.get('security_deposit') ? parseFloat(formData.get('security_deposit')) : null,
+            is_occupied: formData.get('is_occupied') === 'true',
+            status: formData.get('status') || 'available',
+            features: features.length > 0 ? JSON.stringify(features) : null,
+            description: formData.get('description')?.trim() || null
+        };
+        
+        console.log('Submitting Unit Data:', unitData);
+        
+        // Validate required fields
+        if (!unitData.unit_number) {
+            throw new Error('Unit number is required');
+        }
+        if (!unitData.house_type) {
+            throw new Error('Unit type is required');
+        }
+        if (!unitData.monthly_rent || unitData.monthly_rent <= 0) {
+            throw new Error('Valid monthly rent is required');
+        }
+        
+        // Submit to backend API
+        const token = getAuthToken();
+        
+        if (!token) {
+            throw new Error('Not authenticated. Please log in.');
+        }
+        
+        const response = await fetch(`${API_URL}/units`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(unitData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showAlert('✅ Unit added successfully!', 'success');
+            
+            // Clear form
+            e.target.reset();
+            
+            // Redirect after 1.5 seconds
+            setTimeout(() => {
+                window.location.href = 'list.html';
+            }, 1500);
+        } else {
+            throw new Error(result.error || result.message || 'Failed to add unit');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('❌ Error: ' + error.message, 'danger');
+    } finally {
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+});
 </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 const UtilityApp = {
     // Configuration
     config: {
-        apiBaseUrl: 'http://localhost:5000/api',
+        apiBaseUrl: `${API_CONFIG.BASE_URL}/api`,
         itemsPerPage: 10
     },
 
@@ -25,6 +25,12 @@ const UtilityApp = {
     },
 
     setupEventListeners() {
+        // Form submission
+        const form = this.getElement('utilityForm');
+        if (form) {
+            form.addEventListener('submit', (e) => this.handleSubmit(e));
+        }
+
         // Search and filters
         this.addListener('searchInput', 'input', () => this.applyFilters());
         this.addListener('filterProperty', 'change', () => this.applyFilters());
@@ -47,6 +53,13 @@ const UtilityApp = {
 
         // Clear filters
         this.addListener('clearBtn', 'click', () => this.clearFilters());
+
+        // Add utility button
+        this.addListener('addUtilityBtn', 'click', () => this.openModal());
+
+        // Modal close buttons
+        this.addListener('closeModal', 'click', () => this.closeModal());
+        this.addListener('cancelBtn', 'click', () => this.closeModal());
 
         // Modal events
         document.addEventListener('keydown', (e) => {
@@ -104,119 +117,111 @@ const UtilityApp = {
         }
     },
 
-   // ===== DATA LOADING =====
-async fetchProperties() {
-    try {
-        console.log('Fetching properties from:', `${this.config.apiBaseUrl}/properties`);
-        const response = await fetch(`${this.config.apiBaseUrl}/properties`);
-        const data = await response.json();
-        
-        console.log('Raw properties data:', data);
-        
-        // Handle different response formats
-        let propertiesArray = [];
-        
-        if (Array.isArray(data)) {
-            propertiesArray = data;
-        } else if (data.data && Array.isArray(data.data)) {
-            // ✅ YOUR API USES THIS FORMAT
-            propertiesArray = data.data;
-        } else if (data.properties && Array.isArray(data.properties)) {
-            propertiesArray = data.properties;
-        } else if (typeof data === 'object' && data !== null) {
-            propertiesArray = Object.values(data);
+    async fetchProperties() {
+        try {
+            console.log('Fetching properties from:', `${this.config.apiBaseUrl}/properties`);
+            const response = await fetch(`${this.config.apiBaseUrl}/properties`);
+            const data = await response.json();
+            
+            console.log('Raw properties data:', data);
+            
+            // Handle different response formats
+            let propertiesArray = [];
+            
+            if (Array.isArray(data)) {
+                propertiesArray = data;
+            } else if (data.data && Array.isArray(data.data)) {
+                propertiesArray = data.data;
+            } else if (data.properties && Array.isArray(data.properties)) {
+                propertiesArray = data.properties;
+            } else if (typeof data === 'object' && data !== null) {
+                propertiesArray = Object.values(data);
+            }
+            
+            this.state.properties = propertiesArray;
+            console.log('Properties stored in state:', this.state.properties);
+            
+            this.populatePropertyDropdowns();
+            console.log(`✅ Loaded ${this.state.properties.length} properties`);
+        } catch (error) {
+            console.error('❌ Error fetching properties:', error);
+            this.state.properties = [];
+            this.populatePropertyDropdowns();
         }
-        
-        this.state.properties = propertiesArray;
-        console.log('Properties stored in state:', this.state.properties);
-        
-        this.populatePropertyDropdowns();
-        console.log(`✅ Loaded ${this.state.properties.length} properties`);
-    } catch (error) {
-        console.error('❌ Error fetching properties:', error);
-        this.state.properties = [];
-        this.populatePropertyDropdowns();
-    }
-},
+    },
 
-async fetchUnits() {
-    try {
-        const response = await fetch(`${this.config.apiBaseUrl}/units`);
-        const data = await response.json();
-        
-        let unitsArray = [];
-        if (Array.isArray(data)) {
-            unitsArray = data;
-        } else if (data.data && Array.isArray(data.data)) {
-            unitsArray = data.data;
-        } else if (data.units && Array.isArray(data.units)) {
-            unitsArray = data.units;
+    async fetchUnits() {
+        try {
+            const response = await fetch(`${this.config.apiBaseUrl}/units`);
+            const data = await response.json();
+            
+            let unitsArray = [];
+            if (Array.isArray(data)) {
+                unitsArray = data;
+            } else if (data.data && Array.isArray(data.data)) {
+                unitsArray = data.data;
+            } else if (data.units && Array.isArray(data.units)) {
+                unitsArray = data.units;
+            }
+            
+            this.state.units = unitsArray;
+            console.log(`✅ Loaded ${this.state.units.length} units`);
+        } catch (error) {
+            console.error('❌ Error fetching units:', error);
+            this.state.units = [];
         }
-        
-        this.state.units = unitsArray;
-        console.log(`✅ Loaded ${this.state.units.length} units`);
-    } catch (error) {
-        console.error('❌ Error fetching units:', error);
-        this.state.units = [];
-    }
-},
+    },
 
-async fetchTenants() {
-    try {
-        const response = await fetch(`${this.config.apiBaseUrl}/tenants`);
-        const data = await response.json();
-        
-        let tenantsArray = [];
-        if (Array.isArray(data)) {
-            tenantsArray = data;
-        } else if (data.data && Array.isArray(data.data)) {
-            tenantsArray = data.data;
-        } else if (data.tenants && Array.isArray(data.tenants)) {
-            tenantsArray = data.tenants;
+    async fetchTenants() {
+        try {
+            const response = await fetch(`${this.config.apiBaseUrl}/tenants`);
+            const data = await response.json();
+            
+            let tenantsArray = [];
+            if (Array.isArray(data)) {
+                tenantsArray = data;
+            } else if (data.data && Array.isArray(data.data)) {
+                tenantsArray = data.data;
+            } else if (data.tenants && Array.isArray(data.tenants)) {
+                tenantsArray = data.tenants;
+            }
+            
+            this.state.tenants = tenantsArray;
+            console.log(`✅ Loaded ${this.state.tenants.length} tenants`);
+        } catch (error) {
+            console.error('❌ Error fetching tenants:', error);
+            this.state.tenants = [];
         }
-        
-        this.state.tenants = tenantsArray;
-        console.log(`✅ Loaded ${this.state.tenants.length} tenants`);
-    } catch (error) {
-        console.error('❌ Error fetching tenants:', error);
-        this.state.tenants = [];
-    }
-},
+    },
 
-async fetchUtilities() {
-    try {
-        const response = await fetch(`${this.config.apiBaseUrl}/utilities`);
-        const data = await response.json();
-        
-        let utilitiesArray = [];
-        if (Array.isArray(data)) {
-            utilitiesArray = data;
-        } else if (data.data && Array.isArray(data.data)) {
-            utilitiesArray = data.data;
-        } else if (data.utilities && Array.isArray(data.utilities)) {
-            utilitiesArray = data.utilities;
+    async fetchUtilities() {
+        try {
+            const response = await fetch(`${this.config.apiBaseUrl}/utilities`);
+            const data = await response.json();
+            
+            let utilitiesArray = [];
+            if (Array.isArray(data)) {
+                utilitiesArray = data;
+            } else if (data.data && Array.isArray(data.data)) {
+                utilitiesArray = data.data;
+            } else if (data.utilities && Array.isArray(data.utilities)) {
+                utilitiesArray = data.utilities;
+            }
+            
+            this.state.utilities = utilitiesArray;
+            this.state.filteredUtilities = [...this.state.utilities];
+            console.log(`✅ Loaded ${this.state.utilities.length} utilities`);
+            
+            this.renderUtilities();
+            this.updateStatistics();
+            this.updateResultsInfo();
+        } catch (error) {
+            console.error('❌ Error fetching utilities:', error);
+            this.state.utilities = [];
+            this.state.filteredUtilities = [];
+            this.renderEmptyState();
         }
-        
-        this.state.utilities = utilitiesArray;
-        this.state.filteredUtilities = [...this.state.utilities];
-        console.log(`✅ Loaded ${this.state.utilities.length} utilities`);
-        
-        this.renderUtilities();
-        this.updateStatistics();
-        this.updateResultsInfo();
-    } catch (error) {
-        console.error('❌ Error fetching utilities:', error);
-        this.state.utilities = [];
-        this.state.filteredUtilities = [];
-        this.renderEmptyState();
-    }
-},
-
-
-
-
-        
-     
+    },
 
     // ===== API WRAPPER METHODS =====
     async apiGet(endpoint) {
@@ -413,72 +418,67 @@ async fetchUtilities() {
     },
 
     // ===== DROPDOWN POPULATION =====
-populatePropertyDropdowns() {
-    const filterSelect = this.getElement('filterProperty');
-    const formSelect = this.getElement('property');
-    
-    console.log('📋 Populating property dropdowns...', this.state.properties);
-    
-    if (filterSelect) {
-        filterSelect.innerHTML = '<option value="">All Properties</option>';
-        this.state.properties.forEach((property, index) => {
-            console.log(`Processing property ${index}:`, property, typeof property);
-            
-            const option = document.createElement('option');
-            
-            // If property is just a number or simple value
-            if (typeof property !== 'object') {
-                option.value = index;
-                option.textContent = `Property ${index}`;
-            } else {
-                option.value = property.property_id || property.id || index;
+    populatePropertyDropdowns() {
+        const filterSelect = this.getElement('filterProperty');
+        const formSelect = this.getElement('property');
+        
+        console.log('📋 Populating property dropdowns...', this.state.properties);
+        
+        if (filterSelect) {
+            filterSelect.innerHTML = '<option value="">All Properties</option>';
+            this.state.properties.forEach((property, index) => {
+                console.log(`Processing property ${index}:`, property, typeof property);
                 
-                // Enhanced property name detection
-                const propertyName = 
-                    property.property_name || 
-                    property.name || 
-                    property.title || 
-                    property.address ||
-                    property.location ||
-                    `Property ${option.value}`;
+                const option = document.createElement('option');
                 
-                option.textContent = propertyName.charAt(0).toUpperCase() + propertyName.slice(1).toLowerCase();
-            }
-            
-            filterSelect.appendChild(option);
-            console.log(`Added to filter: ${option.textContent} (value: ${option.value})`);
-        });
-    }
-    
-    if (formSelect) {
-        formSelect.innerHTML = '<option value="">Select Property</option>';
-        this.state.properties.forEach((property, index) => {
-            const option = document.createElement('option');
-            
-            // If property is just a number or simple value
-            if (typeof property !== 'object') {
-                option.value = index;
-                option.textContent = `Property ${index}`;
-            } else {
-                option.value = property.property_id || property.id || index;
+                if (typeof property !== 'object') {
+                    option.value = index;
+                    option.textContent = `Property ${index}`;
+                } else {
+                    option.value = property.property_id || property.id || index;
+                    
+                    const propertyName = 
+                        property.property_name || 
+                        property.name || 
+                        property.title || 
+                        property.address ||
+                        property.location ||
+                        `Property ${option.value}`;
+                    
+                    option.textContent = propertyName.charAt(0).toUpperCase() + propertyName.slice(1).toLowerCase();
+                }
                 
-                // Enhanced property name detection
-                const propertyName = 
-                    property.property_name || 
-                    property.name || 
-                    property.title || 
-                    property.address ||
-                    property.location ||
-                    `Property ${option.value}`;
+                filterSelect.appendChild(option);
+            });
+        }
+        
+        if (formSelect) {
+            formSelect.innerHTML = '<option value="">Select Property</option>';
+            this.state.properties.forEach((property, index) => {
+                const option = document.createElement('option');
                 
-                option.textContent = propertyName.charAt(0).toUpperCase() + propertyName.slice(1).toLowerCase();
-            }
-            
-            formSelect.appendChild(option);
-        });
-        console.log('✅ Form property dropdown populated with', this.state.properties.length, 'properties');
-    }
-},
+                if (typeof property !== 'object') {
+                    option.value = index;
+                    option.textContent = `Property ${index}`;
+                } else {
+                    option.value = property.property_id || property.id || index;
+                    
+                    const propertyName = 
+                        property.property_name || 
+                        property.name || 
+                        property.title || 
+                        property.address ||
+                        property.location ||
+                        `Property ${option.value}`;
+                    
+                    option.textContent = propertyName.charAt(0).toUpperCase() + propertyName.slice(1).toLowerCase();
+                }
+                
+                formSelect.appendChild(option);
+            });
+            console.log('✅ Form property dropdown populated');
+        }
+    },
 
     onPropertyChange(propertyId) {
         const unitSelect = this.getElement('unit');
@@ -500,43 +500,40 @@ populatePropertyDropdowns() {
         });
     },
 
-  onUnitChange(unitId) {
-    const tenantSelect = this.getElement('tenant');
-    if (!tenantSelect) return;
-    
-    tenantSelect.innerHTML = '<option value="">Select Tenant</option>';
-    
-    if (!unitId) return;
-    
-    console.log('🔍 Looking for tenants in unit:', unitId);
-    
-    const unitTenants = this.state.tenants.filter(t => {
-        // Handle both is_active boolean and status string
-        const isActive = t.is_active === true || 
-                        (t.status && t.status.toLowerCase() === 'active');
-        const matches = t.unit_id == unitId && isActive;
+    onUnitChange(unitId) {
+        const tenantSelect = this.getElement('tenant');
+        if (!tenantSelect) return;
         
-        console.log(`Tenant ${t.full_name || t.first_name}: unit_id=${t.unit_id}, is_active=${t.is_active}, matches=${matches}`);
-        return matches;
-    });
-    
-    console.log(`✅ Found ${unitTenants.length} active tenants for unit ${unitId}`);
-    
-    unitTenants.forEach(tenant => {
-        const option = document.createElement('option');
-        option.value = tenant.tenant_id;
+        tenantSelect.innerHTML = '<option value="">Select Tenant</option>';
         
-        // Handle different name formats
-        const tenantName = tenant.full_name || 
-                          `${tenant.first_name || ''} ${tenant.last_name || ''}`.trim() ||
-                          tenant.name ||
-                          `Tenant ${tenant.tenant_id}`;
+        if (!unitId) return;
         
-        option.textContent = tenantName;
-        tenantSelect.appendChild(option);
-        console.log(`➕ Added tenant: ${tenantName}`);
-    });
-},
+        console.log('🔍 Looking for tenants in unit:', unitId);
+        
+        const unitTenants = this.state.tenants.filter(t => {
+            const isActive = t.is_active === true || 
+                            (t.status && t.status.toLowerCase() === 'active');
+            const matches = t.unit_id == unitId && isActive;
+            
+            console.log(`Tenant ${t.full_name || t.first_name}: unit_id=${t.unit_id}, is_active=${t.is_active}, matches=${matches}`);
+            return matches;
+        });
+        
+        console.log(`✅ Found ${unitTenants.length} active tenants for unit ${unitId}`);
+        
+        unitTenants.forEach(tenant => {
+            const option = document.createElement('option');
+            option.value = tenant.tenant_id;
+            
+            const tenantName = tenant.full_name || 
+                              `${tenant.first_name || ''} ${tenant.last_name || ''}`.trim() ||
+                              tenant.name ||
+                              `Tenant ${tenant.tenant_id}`;
+            
+            option.textContent = tenantName;
+            tenantSelect.appendChild(option);
+        });
+    },
 
     // ===== AUTO-CALCULATIONS =====
     calculateUnits() {
@@ -591,57 +588,57 @@ populatePropertyDropdowns() {
         container.innerHTML = paginatedData.map(utility => this.renderUtilityCard(utility)).join('');
         this.updatePaginationControls();
     },
-renderUtilityCard(utility) {
-    // Safely get values with fallbacks
-    const amountDue = Number(utility.amount_due || 0);
-    const amountPaid = Number(utility.amount_paid || 0);
-    const balance = amountDue - amountPaid;
-    const badgeClass = this.getPaymentBadgeClass(utility.payment_status || 'pending');
-    const balanceClass = balance > 0 ? 'text-danger' : 'text-success';
-    const utilityType = (utility.utility_type || 'unknown').toUpperCase();
 
-    return `
-        <div class="utility-card">
-            <div class="utility-header">
-                <div>
-                    <div class="utility-amount">
-                        KES ${amountDue.toLocaleString()}
-                    </div>
-                    <div class="utility-type">
-                        ${utilityType}
-                    </div>
-                </div>
-                <span class="utility-badge ${badgeClass}">
-                    ${utility.payment_status || 'pending'}
-                </span>
-            </div>
+    renderUtilityCard(utility) {
+        const amountDue = Number(utility.amount_due || 0);
+        const amountPaid = Number(utility.amount_paid || 0);
+        const balance = amountDue - amountPaid;
+        const badgeClass = this.getPaymentBadgeClass(utility.payment_status || 'pending');
+        const balanceClass = balance > 0 ? 'text-danger' : 'text-success';
+        const utilityType = (utility.utility_type || 'unknown').toUpperCase();
 
-            <div class="utility-body">
-                <p><strong>Property:</strong> ${utility.property_name || 'N/A'}</p>
-                <p><strong>Unit:</strong> ${utility.unit_number || 'N/A'}</p>
-                <p><strong>Tenant:</strong> ${utility.tenant_name || 'N/A'}</p>
-                <p><strong>Billing Month:</strong> ${this.formatDate(utility.billing_month)}</p>
-                <p><strong>Units Consumed:</strong> ${utility.units_consumed || 0}</p>
-                <p><strong>Rate per Unit:</strong> KES ${utility.rate_per_unit || 0}</p>
-                <p><strong>Paid:</strong> KES ${amountPaid.toLocaleString()}</p>
-                <p><strong>Balance:</strong> 
-                    <span class="${balanceClass}">
-                        KES ${balance.toLocaleString()}
+        return `
+            <div class="utility-card">
+                <div class="utility-header">
+                    <div>
+                        <div class="utility-amount">
+                            KES ${amountDue.toLocaleString()}
+                        </div>
+                        <div class="utility-type">
+                            ${utilityType}
+                        </div>
+                    </div>
+                    <span class="utility-badge ${badgeClass}">
+                        ${utility.payment_status || 'pending'}
                     </span>
-                </p>
-            </div>
+                </div>
 
-            <div class="utility-actions">
-                <button onclick="UtilityApp.openModal(${utility.utility_id})">
-                    Edit
-                </button>
-                <button class="danger" onclick="UtilityApp.deleteUtility(${utility.utility_id})">
-                    Delete
-                </button>
+                <div class="utility-body">
+                    <p><strong>Property:</strong> ${utility.property_name || 'N/A'}</p>
+                    <p><strong>Unit:</strong> ${utility.unit_number || 'N/A'}</p>
+                    <p><strong>Tenant:</strong> ${utility.tenant_name || 'N/A'}</p>
+                    <p><strong>Billing Month:</strong> ${this.formatDate(utility.billing_month)}</p>
+                    <p><strong>Units Consumed:</strong> ${utility.units_consumed || 0}</p>
+                    <p><strong>Rate per Unit:</strong> KES ${utility.rate_per_unit || 0}</p>
+                    <p><strong>Paid:</strong> KES ${amountPaid.toLocaleString()}</p>
+                    <p><strong>Balance:</strong> 
+                        <span class="${balanceClass}">
+                            KES ${balance.toLocaleString()}
+                        </span>
+                    </p>
+                </div>
+
+                <div class="utility-actions">
+                    <button onclick="UtilityApp.openModal(${utility.utility_id})">
+                        Edit
+                    </button>
+                    <button class="danger" onclick="UtilityApp.deleteUtility(${utility.utility_id})">
+                        Delete
+                    </button>
+                </div>
             </div>
-        </div>
-    `;
-},
+        `;
+    },
 
     renderEmptyState() {
         const container = this.getElement('utilitiesList');
