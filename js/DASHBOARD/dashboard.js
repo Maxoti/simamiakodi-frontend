@@ -134,7 +134,7 @@ async function fetchAPI(endpoint, timeoutMs = 5000) {
 
 // ===== DASHBOARD LOADING =====
 async function loadDashboard() {
-    console.log('📊 Loading dashboard...');
+    console.log(' Loading dashboard...');
     const startTime = performance.now();
     
     try {

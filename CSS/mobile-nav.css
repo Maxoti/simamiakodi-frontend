@@ -1,0 +1,323 @@
+/* ============================================
+   MOBILE RESPONSIVE NAVIGATION - FIXED
+   ============================================ */
+
+/* Hide desktop sidebar on mobile */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding-top: 70px !important;
+    }
+    
+    body {
+        overflow-x: hidden;
+    }
+}
+
+/* ============================================
+   MOBILE TOP NAVIGATION BAR
+   ============================================ */
+.mobile-top-nav {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    z-index: 1050;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+}
+
+@media (max-width: 768px) {
+    .mobile-top-nav {
+        display: flex;
+    }
+}
+
+/* Hamburger Button */
+.mobile-hamburger {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 1051;
+}
+
+.mobile-hamburger:active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-hamburger span {
+    display: block;
+    width: 24px;
+    height: 3px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.mobile-hamburger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(7px, 7px);
+}
+
+.mobile-hamburger.active span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.mobile-hamburger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* Logo */
+.mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    flex: 1;
+    justify-content: center;
+}
+
+.mobile-logo i {
+    font-size: 24px;
+    color: #3498db;
+}
+
+/* User Icon */
+.mobile-user-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #3498db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+}
+
+/* ============================================
+   MOBILE SIDEBAR
+   ============================================ */
+.mobile-sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 280px;
+    height: calc(100vh - 60px);
+    background: #2c3e50;
+    color: white;
+    overflow-y: auto;
+    z-index: 1040;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+}
+
+.mobile-sidebar.active {
+    transform: translateX(0);
+}
+
+/* User Profile Section */
+.mobile-user-profile {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.mobile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #3498db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.mobile-user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mobile-user-role {
+    font-size: 13px;
+    opacity: 0.8;
+    color: #ecf0f1;
+    text-transform: capitalize;
+}
+
+/* Navigation Menu */
+.mobile-menu {
+    padding: 10px 0;
+}
+
+.mobile-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.mobile-menu-link:hover,
+.mobile-menu-link:active {
+    background: rgba(52, 152, 219, 0.15);
+    padding-left: 25px;
+}
+
+.mobile-menu-link.active {
+    background: rgba(52, 152, 219, 0.25);
+    border-left-color: #3498db;
+    color: #3498db;
+    font-weight: 600;
+}
+
+.mobile-menu-link i {
+    width: 24px;
+    text-align: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.mobile-menu-link span {
+    flex: 1;
+    font-size: 15px;
+}
+
+/* Menu Footer */
+.mobile-menu-footer {
+    margin-top: auto;
+    padding: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-logout-btn {
+    width: 100%;
+    background: #e74c3c !important;
+    color: white !important;
+    border: none;
+    padding: 12px !important;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+    border-left: none !important;
+}
+
+.mobile-logout-btn:hover,
+.mobile-logout-btn:active {
+    background: #c0392b !important;
+    padding-left: 12px !important;
+}
+
+.mobile-version-info {
+    margin-top: 10px;
+    text-align: center;
+    opacity: 0.5;
+    font-size: 11px;
+}
+
+/* Overlay */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1030;
+    backdrop-filter: blur(2px);
+}
+
+.mobile-overlay.active {
+    display: block;
+}
+
+/* Prevent body scroll when menu open */
+body.mobile-menu-open {
+    overflow: hidden;
+}
+
+/* ============================================
+   DESKTOP - HIDE MOBILE ELEMENTS
+   ============================================ */
+@media (min-width: 769px) {
+    .mobile-top-nav,
+    .mobile-sidebar,
+    .mobile-overlay {
+        display: none !important;
+    }
+}
+
+/* ============================================
+   SMOOTH SCROLLING FOR MOBILE
+   ============================================ */
+.mobile-sidebar {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.mobile-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mobile-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mobile-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.mobile-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

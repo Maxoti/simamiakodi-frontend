@@ -341,6 +341,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="../../CSS/mobile-nav.css">
 </head>
 <body>
     <!-- Loader -->
@@ -404,19 +405,7 @@
                             <p class="text-muted">Start managing your properties efficiently today</p>
                         </div>
                         
-                        <!-- Social Register -->
-                        <div class="social-login">
-                            <button type="button" class="social-btn" onclick="alert('Google sign-in coming soon!')">
-                                <i class="fab fa-google" style="color: #DB4437;"></i>
-                            </button>
-                            <button type="button" class="social-btn" onclick="alert('Facebook sign-in coming soon!')">
-                                <i class="fab fa-facebook-f" style="color: #4267B2;"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="divider">
-                            <span>OR</span>
-                        </div>
+                       
                         
                         <!-- Register Form - FIELD NAMES MATCH auth.js -->
                         <form id="register-form">
@@ -439,7 +428,6 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Username</label>
                                 <div class="input-group">
-                                    <i class="fas fa-at input-group-icon"></i>
                                     <input 
                                         type="text" 
                                         class="form-control" 
@@ -592,7 +580,7 @@ const API_BASE = `${API_CONFIG.BASE_URL}/api`;
 
 // ===== PASSWORD STRENGTH CHECKER =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔐 Registration page loaded!');
+    console.log(' Registration page loaded!');
     console.log('API Base URL:', API_BASE);
     
     const passwordInput = document.getElementById('password');

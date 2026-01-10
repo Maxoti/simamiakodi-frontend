@@ -259,7 +259,7 @@ const ConfigUtils = {
    */
   printConfig() {
     console.log('═══════════════════════════════════════');
-    console.log('🏢 SimamiaKodi API Configuration');
+    console.log(' SimamiaKodi API Configuration');
     console.log('═══════════════════════════════════════');
     console.log('Environment:', API_CONFIG.ENVIRONMENT);
     console.log('Base URL:', API_CONFIG.BASE_URL);

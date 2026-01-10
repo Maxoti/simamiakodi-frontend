@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -45,6 +45,7 @@
             margin: 0;
         }
     </style>
+    <link rel="stylesheet" href="CSS/mobile-nav.css">
 </head>
 <body>
     <div class="loading-container">
@@ -63,11 +64,11 @@
             
             if (token) {
                 // Dashboard is at ROOT level, not in pages/
-                console.log('✅ User authenticated, redirecting to dashboard...');
-                window.location.href = 'dashboard.html';  // ← Changed from 'pages/dashboard.html'
+                console.log('? User authenticated, redirecting to dashboard...');
+                window.location.href = 'dashboard.html';  // ? Changed from 'pages/dashboard.html'
             } else {
                 // Login is in pages/auth/
-                console.log('❌ No authentication found, redirecting to login...');
+                console.log('? No authentication found, redirecting to login...');
                 window.location.href = 'pages/auth/login.html';
             }
         })();
