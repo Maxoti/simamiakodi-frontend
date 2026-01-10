@@ -8,12 +8,18 @@ const TOKEN_KEY = 'auth_token';
 const USER_DATA_KEY = 'user_data';
 const REMEMBER_ME_KEY = 'remember_me';
 
-// -------------------- REGISTRATION --------------------
-
 function setupRegisterForm() {
+  console.log('setupRegisterForm() called');
   const registerForm = document.getElementById('register-form');
   
-  if (!registerForm) return;
+  console.log('Register form element:', registerForm);
+  
+  if (!registerForm) {
+    console.log('No register form found!');
+    return;
+  }
+  
+  console.log('Adding submit event listener to register form');
   
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -53,18 +59,8 @@ function setupRegisterForm() {
       role 
     });
   });
-}
-function validateRegisterForm(data) {
-  const validations = [
-    validateUsername(data.username),
-    validateEmail(data.email),
-    validateFullName(data.fullName),
-    validatePassword(data.password),
-    validatePasswordMatch(data.password, data.confirmPassword)
-  ];
-
-  // Return false if any validation fails
-  return validations.every(result => result === true);
+  
+  console.log('Submit event listener added successfully');
 }
 
 /**
