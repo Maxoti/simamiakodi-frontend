@@ -169,7 +169,6 @@ function setupLoginForm() {
     await performLogin({ username, password, remember });
   });
 }
-
 async function performLogin(credentials) {
   showLoading();
   
@@ -185,11 +184,20 @@ async function performLogin(credentials) {
       })
     });
     
-    const data = await response.json();
-    
+    // Check if response is ok first
     if (!response.ok) {
-      throw new Error(data.error || 'Login failed');
+      let errorMessage = 'Login failed';
+      try {
+        const data = await response.json();
+        errorMessage = data.error || errorMessage;
+      } catch (parseError) {
+        // If JSON parsing fails, use status text
+        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
+    
+    const data = await response.json();
     
     saveAuthData(data.token, data.user, credentials.remember);
     
