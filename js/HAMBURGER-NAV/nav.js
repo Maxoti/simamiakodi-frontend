@@ -40,8 +40,9 @@ const MobileNav = {
      * Create navigation HTML structure
      */
     createNavigationHTML() {
+        const environment = typeof API_CONFIG !== 'undefined' ? API_CONFIG.ENVIRONMENT : 'Production';
+        
         const navHTML = `
-            <!-- Mobile Top Navigation -->
             <div class="mobile-top-nav" id="mobileTopNav">
                 <button class="mobile-hamburger" onclick="MobileNav.toggle()" aria-label="Toggle menu">
                     <span></span>
@@ -59,9 +60,7 @@ const MobileNav = {
                 </div>
             </div>
 
-            <!-- Mobile Sidebar -->
             <div class="mobile-sidebar" id="mobileSidebar">
-                <!-- User Profile Section -->
                 <div class="mobile-user-profile">
                     <div class="mobile-avatar" id="mobileSidebarAvatar">
                         <i class="fas fa-user"></i>
@@ -72,29 +71,28 @@ const MobileNav = {
                     </div>
                 </div>
 
-                <!-- Navigation Menu -->
                 <nav class="mobile-menu">
-                    <a href="/index.html" class="mobile-menu-link">
+                    <a href="/dashboard.html" class="mobile-menu-link">
                         <i class="fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
                     
-                    <a href="/pages/tenants/tenants.html" class="mobile-menu-link">
+                    <a href="/pages/tenants/list.html" class="mobile-menu-link">
                         <i class="fas fa-users"></i>
                         <span>Tenants</span>
                     </a>
                     
-                    <a href="/pages/properties/properties.html" class="mobile-menu-link">
+                    <a href="/pages/properties/list.html" class="mobile-menu-link">
                         <i class="fas fa-building"></i>
                         <span>Properties</span>
                     </a>
                     
-                    <a href="/pages/units/units.html" class="mobile-menu-link">
+                    <a href="/pages/units/list.html" class="mobile-menu-link">
                         <i class="fas fa-door-open"></i>
                         <span>Units</span>
                     </a>
                     
-                    <a href="/pages/payments/payments.html" class="mobile-menu-link">
+                    <a href="/pages/payments/list.html" class="mobile-menu-link">
                         <i class="fas fa-money-bill-wave"></i>
                         <span>Payments</span>
                     </a>
@@ -104,7 +102,7 @@ const MobileNav = {
                         <span>Expenses</span>
                     </a>
                     
-                    <a href="/pages/maintenance/maintenance.html" class="mobile-menu-link">
+                    <a href="/pages/maintenance.html" class="mobile-menu-link">
                         <i class="fas fa-tools"></i>
                         <span>Maintenance</span>
                     </a>
@@ -114,7 +112,7 @@ const MobileNav = {
                         <span>Utilities</span>
                     </a>
                     
-                    <a href="/pages/agents/agents.html" class="mobile-menu-link">
+                    <a href="/pages/agent/agent.html" class="mobile-menu-link">
                         <i class="fas fa-user-tie"></i>
                         <span>Agents</span>
                     </a>
@@ -124,13 +122,12 @@ const MobileNav = {
                         <span>Caretakers</span>
                     </a>
                     
-                    <a href="/pages/reports/reports.html" class="mobile-menu-link">
+                    <a href="/pages/reports/analytics.html" class="mobile-menu-link">
                         <i class="fas fa-chart-bar"></i>
                         <span>Reports</span>
                     </a>
                 </nav>
 
-                <!-- Bottom Actions -->
                 <div class="mobile-menu-footer">
                     <button class="mobile-menu-link mobile-logout-btn" onclick="MobileNav.handleLogout()">
                         <i class="fas fa-sign-out-alt"></i>
@@ -138,12 +135,11 @@ const MobileNav = {
                     </button>
                     
                     <div class="mobile-version-info">
-                        <small>Environment: ${API_CONFIG.ENVIRONMENT}</small>
+                        <small>Environment: ${environment}</small>
                     </div>
                 </div>
             </div>
 
-            <!-- Mobile Overlay -->
             <div class="mobile-overlay" id="mobileOverlay" onclick="MobileNav.close()"></div>
         `;
 
@@ -154,7 +150,6 @@ const MobileNav = {
      * Setup event listeners
      */
     setupEventListeners() {
-        // Close menu when clicking links
         document.querySelectorAll('.mobile-menu-link').forEach(link => {
             if (!link.classList.contains('mobile-logout-btn')) {
                 link.addEventListener('click', () => {
@@ -163,7 +158,6 @@ const MobileNav = {
             }
         });
 
-        // Handle window resize
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
@@ -174,14 +168,12 @@ const MobileNav = {
             }, this.config.autoCloseDelay);
         });
 
-        // Handle escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.state.isOpen) {
                 this.close();
             }
         });
 
-        // Prevent body scroll when menu is open
         document.addEventListener('touchmove', (e) => {
             if (this.state.isOpen && !e.target.closest('.mobile-sidebar')) {
                 e.preventDefault();
@@ -193,11 +185,7 @@ const MobileNav = {
      * Toggle sidebar
      */
     toggle() {
-        if (this.state.isOpen) {
-            this.close();
-        } else {
-            this.open();
-        }
+        this.state.isOpen ? this.close() : this.open();
     },
 
     /**
@@ -248,7 +236,7 @@ const MobileNav = {
             const href = link.getAttribute('href');
             
             if (href === currentPath || 
-                (currentPath === '/' && href === '/index.html') ||
+                (currentPath === '/' && href === '/dashboard.html') ||
                 (currentPath.includes(href) && href !== '/')) {
                 link.classList.add('active');
             }
@@ -273,21 +261,18 @@ const MobileNav = {
             const initials = this.generateInitials(fullName);
             const role = userData.role || 'User';
 
-            // Update top nav icon
             const topIcon = document.getElementById('mobileUserIcon');
             if (topIcon) {
                 topIcon.textContent = initials;
                 topIcon.style.background = this.generateColorFromName(fullName);
             }
 
-            // Update sidebar avatar
             const sidebarAvatar = document.getElementById('mobileSidebarAvatar');
             if (sidebarAvatar) {
                 sidebarAvatar.textContent = initials;
                 sidebarAvatar.style.background = this.generateColorFromName(fullName);
             }
 
-            // Update sidebar name and role
             const sidebarName = document.getElementById('mobileSidebarName');
             if (sidebarName) sidebarName.textContent = fullName;
 
@@ -339,8 +324,7 @@ const MobileNav = {
             '#198754', '#0d6efd', '#6f42c1', '#d63384', 
             '#fd7e14', '#20c997', '#0dcaf0', '#6610f2'
         ];
-        const index = name.length % colors.length;
-        return colors[index];
+        return colors[name.length % colors.length];
     },
 
     /**
@@ -351,33 +335,29 @@ const MobileNav = {
             return;
         }
 
-        console.log(' Logging out...');
+        console.log('🔓 Logging out...');
 
         try {
-            // Call logout API if available
-            if (typeof ApiService !== 'undefined') {
+            if (typeof ApiService !== 'undefined' && typeof API_CONFIG !== 'undefined') {
                 try {
                     await ApiService.post(API_CONFIG.ENDPOINTS.AUTH.LOGOUT);
                 } catch (error) {
-                    console.warn(' Logout API call failed:', error);
+                    console.warn('⚠️ Logout API call failed:', error);
                 }
             }
 
-            // Clear all auth data
             localStorage.removeItem('auth_token');
             sessionStorage.removeItem('auth_token');
-            localStorage.removeItem('authToken'); // Legacy
+            localStorage.removeItem('authToken');
             localStorage.removeItem('user_data');
             localStorage.removeItem('remember_me');
 
             console.log('✅ Logged out successfully');
 
-            // Redirect to login
             window.location.href = '/pages/auth/login.html';
 
         } catch (error) {
             console.error('❌ Logout error:', error);
-            // Still redirect even if API call fails
             window.location.href = '/pages/auth/login.html';
         }
     },
@@ -403,12 +383,8 @@ function initializeMobileNavigation() {
     }
 }
 
-// Start initialization
 initializeMobileNavigation();
 
-// Export for global use
 window.MobileNav = MobileNav;
-
-// Legacy function support (for backwards compatibility)
 window.toggleMobileSidebar = () => MobileNav.toggle();
 window.handleMobileLogout = () => MobileNav.handleLogout();
