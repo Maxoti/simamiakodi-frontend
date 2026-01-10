@@ -178,6 +178,19 @@ function isStrongPassword(password) {
   const hasNumbers = /\d/.test(password);
   return hasUpperCase && hasLowerCase && hasNumbers;
 }
+/**
+ * Main validation function for registration form
+ */
+function validateRegisterForm({ username, email, fullName, password, confirmPassword }) {
+  // Validate all fields
+  if (!validateUsername(username)) return false;
+  if (!validateEmail(email)) return false;
+  if (!validateFullName(fullName)) return false;
+  if (!validatePassword(password)) return false;
+  if (!validatePasswordMatch(password, confirmPassword)) return false;
+  
+  return true;
+}
 async function performRegistration(userData) {
   showLoading();
   
