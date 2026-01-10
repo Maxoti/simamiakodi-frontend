@@ -54,51 +54,134 @@ function setupRegisterForm() {
     });
   });
 }
-
 function validateRegisterForm(data) {
-  // Validate username
-  if (!data.username || data.username.length < 3) {
+  const validations = [
+    validateUsername(data.username),
+    validateEmail(data.email),
+    validateFullName(data.fullName),
+    validatePassword(data.password),
+    validatePasswordMatch(data.password, data.confirmPassword)
+  ];
+
+  // Return false if any validation fails
+  return validations.every(result => result === true);
+}
+
+/**
+ * Validates username - accepts alphanumeric, underscores, or email format
+ */
+function validateUsername(username) {
+  if (!username || username.length < 3) {
     showNotification('Username must be at least 3 characters', 'error');
     return false;
   }
-  
-  if (!/^[a-zA-Z0-9_]+$/.test(data.username)) {
-    showNotification('Username can only contain letters, numbers, and underscores', 'error');
+
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username);
+  const isAlphanumeric = /^[a-zA-Z0-9_]+$/.test(username);
+
+  if (!isEmail && !isAlphanumeric) {
+    showNotification('Username can only contain letters, numbers, underscores, or be an email', 'error');
     return false;
   }
-  
-  // Validate email
-  if (!data.email || !isValidEmail(data.email)) {
-    showNotification('Please enter a valid email address', 'error');
-    return false;
-  }
-  
-  // Validate full name
-  if (!data.fullName || data.fullName.length < 2) {
-    showNotification('Full name must be at least 2 characters', 'error');
-    return false;
-  }
-  
-  // Validate password
-  if (!data.password || data.password.length < 8) {
-    showNotification('Password must be at least 8 characters', 'error');
-    return false;
-  }
-  
-  if (!isStrongPassword(data.password)) {
-    showNotification('Password must contain uppercase, lowercase, and number', 'error');
-    return false;
-  }
-  
-  // Validate confirm password
-  if (data.password !== data.confirmPassword) {
-    showNotification('Passwords do not match', 'error');
-    return false;
-  }
-  
+
   return true;
 }
 
+/**
+ * Validates email address format
+ */
+function validateEmail(email) {
+  if (!email) {
+    showNotification('Email address is required', 'error');
+    return false;
+  }
+
+  if (!isValidEmail(email)) {
+    showNotification('Please enter a valid email address', 'error');
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates full name
+ */
+function validateFullName(fullName) {
+  if (!fullName || fullName.trim().length < 2) {
+    showNotification('Full name must be at least 2 characters', 'error');
+    return false;
+  }
+
+  if (fullName.trim().length > 255) {
+    showNotification('Full name is too long (maximum 255 characters)', 'error');
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates password strength
+ */
+function validatePassword(password) {
+  if (!password) {
+    showNotification('Password is required', 'error');
+    return false;
+  }
+
+  if (password.length < 8) {
+    showNotification('Password must be at least 8 characters', 'error');
+    return false;
+  }
+
+  if (password.length > 128) {
+    showNotification('Password is too long (maximum 128 characters)', 'error');
+    return false;
+  }
+
+  if (!isStrongPassword(password)) {
+    showNotification('Password must contain at least one uppercase letter, one lowercase letter, and one number', 'error');
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates password confirmation matches
+ */
+function validatePasswordMatch(password, confirmPassword) {
+  if (!confirmPassword) {
+    showNotification('Please confirm your password', 'error');
+    return false;
+  }
+
+  if (password !== confirmPassword) {
+    showNotification('Passwords do not match', 'error');
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Helper: Validates email format
+ */
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Helper: Checks password strength
+ */
+function isStrongPassword(password) {
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  return hasUpperCase && hasLowerCase && hasNumbers;
+}
 async function performRegistration(userData) {
   showLoading();
   
