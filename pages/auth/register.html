@@ -709,15 +709,18 @@ function validatePassword(password) {
 async function handleRegistration(event) {
     event.preventDefault();
     
-    console.log('📝 Starting registration process...');
+    console.log(' Starting registration process...');
     
-    // Get form values
-    const fullName = document.getElementById('fullName').value.trim();
-    const username = document.getElementById('username').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const phone = document.getElementById('phone')?.value.trim() || '';
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+    // Get the form
+    const form = document.getElementById('register-form');
+    
+    // Get form values using form elements (not IDs)
+    const fullName = form.querySelector('[name="full_name"]').value.trim();
+    const username = form.querySelector('[name="username"]').value.trim();
+    const email = form.querySelector('[name="email"]').value.trim();
+    const phone = form.querySelector('[name="phone"]')?.value.trim() || '';
+    const password = form.querySelector('[name="password"]').value;
+    const confirmPassword = form.querySelector('[name="confirm_password"]').value;
     
     // Validate passwords match
     if (password !== confirmPassword) {
@@ -734,7 +737,6 @@ async function handleRegistration(event) {
     // Prepare registration data
     const registrationData = {
         full_name: fullName,
-        fullName: fullName, // Support both formats
         username: username,
         email: email,
         phone: phone,
@@ -742,13 +744,13 @@ async function handleRegistration(event) {
     };
     
     // Show loading state
-    const submitBtn = document.querySelector('button[type="submit"]');
+    const submitBtn = form.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating account...';
     
     try {
-        console.log('🔄 Sending registration request...');
+        console.log(' Sending registration request...');
         
         const response = await fetch(`${API_BASE}/auth/register`, {
             method: 'POST',
@@ -759,14 +761,14 @@ async function handleRegistration(event) {
         });
         
         const result = await response.json();
-        console.log('📦 Registration response:', result);
+        console.log(' Registration response:', result);
         
         if (response.ok && result.success) {
-            console.log('✅ Registration successful!');
-            showNotification('✅ Account created successfully! Redirecting to login...', 'success');
+            console.log(' Registration successful!');
+            showNotification(' Account created successfully! Redirecting to login...', 'success');
             
             // Clear form
-            document.getElementById('registerForm').reset();
+            form.reset();
             
             // Redirect to login after 2 seconds
             setTimeout(() => {
