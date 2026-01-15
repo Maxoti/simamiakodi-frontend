@@ -32,7 +32,7 @@ const ENV_CONFIG = {
  * Auto-detect environment based on hostname
  */
 function getEnvironment() {
-  const hostname = window.location.hostname;
+  const hostname = window.location.hostname;  
   
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'development';
@@ -74,7 +74,7 @@ const CacheService = {
         this.cache.set(key, { data, expires });
         
         if (ENV_SETTINGS.DEBUG) {
-            console.log(`💾 Cached: ${key} (expires in ${ttl || ENV_SETTINGS.CACHE_TTL}ms)`);
+            console.log(` Cached: ${key} (expires in ${ttl || ENV_SETTINGS.CACHE_TTL}ms)`);
         }
     },
     
