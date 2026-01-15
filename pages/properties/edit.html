@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load property data from API
 async function loadPropertyData(id) {
     try {
-        const token = getAuthToken();
+        const token = getToken();
         
         const response = await fetch(`${API_URL}/properties/${id}`, {
             headers: {
@@ -521,7 +521,7 @@ document.getElementById('edit-property-form').addEventListener('submit', async (
         console.log('Update Data:', propertyData);
         
         // Submit to backend API
-        const token = getAuthToken();
+        const token = getToken();
         
         const response = await fetch(`${API_URL}/properties/${propertyId}`, {
             method: 'PUT',

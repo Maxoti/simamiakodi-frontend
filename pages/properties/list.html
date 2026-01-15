@@ -372,7 +372,7 @@ function setupEventListeners() {
 // Load properties from API
 async function loadProperties() {
     try {
-        const token = getAuthToken();
+        const token = getToken();
         
         const response = await fetch(`${API_URL}/properties`, {
             headers: {
@@ -537,7 +537,7 @@ async function confirmDelete() {
     if (!propertyToDelete) return;
 
     try {
-        const token = getAuthToken();
+        const token = getToken();
         
         const response = await fetch(`${API_URL}/properties/${propertyToDelete}`, {
             method: 'DELETE',
@@ -553,7 +553,7 @@ async function confirmDelete() {
             bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
             
             // Show success message
-            alert('✅ Property deleted successfully!');
+            alert('Property deleted successfully!');
             
             // Reload properties
             loadProperties();

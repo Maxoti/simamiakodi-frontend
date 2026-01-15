@@ -3,7 +3,10 @@
 // ======================================================
 
 // -------------------- CONFIG --------------------
-const AUTH_API_URL = `${API_CONFIG.BASE_URL}/api/auth`;
+const AUTH_API_URL = (() => {
+  if (!API_CONFIG?.BASE_URL) throw new Error('API_CONFIG.BASE_URL is not defined');
+  return `${API_CONFIG.BASE_URL}/api/auth`;
+})();
 
 const STORAGE_KEYS = {
   TOKEN: 'auth_token',
@@ -19,9 +22,7 @@ function initAuth() {
   setupRegisterForm();
   setupPasswordToggles();
 
-  if (location.pathname.includes('login.html')) {
-    redirectIfAuthenticated();
-  }
+  if (location.pathname.includes('login.html')) redirectIfAuthenticated();
 }
 
 document.readyState === 'loading'
@@ -41,7 +42,7 @@ function setupRegisterForm() {
     const data = collectRegisterData(form);
     if (!validateRegisterForm(data)) return;
 
-    await registerUser(data);
+    await registerUser(data, form);
   });
 }
 
@@ -54,12 +55,12 @@ function collectRegisterData(form) {
     password: getValue(form, 'password', false),
     confirmPassword: getValue(form, 'confirm_password', false),
     role: getValue(form, 'role') || 'landlord',
-    terms: form.querySelector('[name="terms"]')?.checked
+    terms: !!form.querySelector('[name="terms"]')?.checked
   };
 }
 
-async function registerUser(userData) {
-  showLoading();
+async function registerUser(userData, form) {
+  showLoading(form);
 
   try {
     const res = await fetch(`${AUTH_API_URL}/register`, {
@@ -72,12 +73,12 @@ async function registerUser(userData) {
     if (!res.ok) throw new Error(data.error || 'Registration failed');
 
     showNotification('Registration successful. Please login.', 'success');
-    setTimeout(() => location.href = 'login.html', 1500);
+    setTimeout(() => (location.href = 'login.html'), 1500);
 
   } catch (err) {
     showNotification(err.message, 'error');
   } finally {
-    hideLoading();
+    hideLoading(form);
   }
 }
 
@@ -93,19 +94,19 @@ function setupLoginForm() {
 
     const username = getValue(form, 'username');
     const password = getValue(form, 'password', false);
-    const remember = form.querySelector('[name="remember"]')?.checked;
+    const remember = !!form.querySelector('[name="remember"]')?.checked;
 
     if (!username || !password) {
       showNotification('Username and password required', 'error');
       return;
     }
 
-    await loginUser({ username, password, remember });
+    await loginUser({ username, password, remember }, form);
   });
 }
 
-async function loginUser(credentials) {
-  showLoading();
+async function loginUser(credentials, form) {
+  showLoading(form);
 
   try {
     const res = await fetch(`${AUTH_API_URL}/login`, {
@@ -120,12 +121,12 @@ async function loginUser(credentials) {
     saveAuth(data.token, data.user, credentials.remember);
     showNotification('Login successful', 'success');
 
-    setTimeout(() => location.href = '../../dashboard.html', 1000);
+    setTimeout(() => (location.href = '../../dashboard.html'), 1000);
 
   } catch (err) {
     showNotification(err.message, 'error');
   } finally {
-    hideLoading();
+    hideLoading(form);
   }
 }
 
@@ -138,8 +139,7 @@ function validateRegisterForm(data) {
   if (!isValidEmail(data.email)) return false;
   if (!isValidName(data.full_name)) return false;
   if (!isStrongPassword(data.password)) return false;
-  if (data.password !== data.confirmPassword)
-    return error('Passwords do not match');
+  if (data.password !== data.confirmPassword) return error('Passwords do not match');
 
   return true;
 }
@@ -150,11 +150,10 @@ function validateRegisterForm(data) {
 function saveAuth(token, user, remember) {
   const storage = remember ? localStorage : sessionStorage;
   storage.setItem(STORAGE_KEYS.TOKEN, token);
-  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+  storage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
 
-  remember
-    ? localStorage.setItem(STORAGE_KEYS.REMEMBER, 'true')
-    : localStorage.removeItem(STORAGE_KEYS.REMEMBER);
+  if (remember) localStorage.setItem(STORAGE_KEYS.REMEMBER, 'true');
+  else localStorage.removeItem(STORAGE_KEYS.REMEMBER);
 }
 
 function getToken() {
@@ -169,9 +168,7 @@ function isAuthenticated() {
 }
 
 function redirectIfAuthenticated() {
-  if (isAuthenticated()) {
-    location.href = '../../dashboard.html';
-  }
+  if (isAuthenticated()) location.href = '../../dashboard.html';
 }
 
 function protectPage() {
@@ -203,7 +200,8 @@ function error(msg) {
 // VALIDATORS
 // ======================================================
 function isValidUsername(username) {
-  return /^[a-zA-Z0-9_]{3,}$/.test(username);
+  // must start with a letter, at least 3 characters
+  return /^[a-zA-Z][a-zA-Z0-9_]{2,}$/.test(username);
 }
 
 function isValidEmail(email) {
@@ -226,22 +224,31 @@ function isStrongPassword(password) {
 // ======================================================
 // UI
 // ======================================================
-function showLoading() {
-  document.querySelectorAll('button[type="submit"]').forEach(btn => {
+function showLoading(form) {
+  const buttons = form
+    ? form.querySelectorAll('button[type="submit"]')
+    : document.querySelectorAll('button[type="submit"]');
+
+  buttons.forEach(btn => {
     btn.disabled = true;
     btn.dataset.text = btn.innerHTML;
     btn.innerHTML = 'Loading...';
   });
 }
 
-function hideLoading() {
-  document.querySelectorAll('button[type="submit"]').forEach(btn => {
+function hideLoading(form) {
+  const buttons = form
+    ? form.querySelectorAll('button[type="submit"]')
+    : document.querySelectorAll('button[type="submit"]');
+
+  buttons.forEach(btn => {
     btn.disabled = false;
     btn.innerHTML = btn.dataset.text || btn.innerHTML;
   });
 }
 
 function showNotification(message, type) {
+  // Basic fallback alert; replace with toast later
   alert(`${type.toUpperCase()}: ${message}`);
 }
 

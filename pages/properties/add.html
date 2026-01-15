@@ -421,7 +421,7 @@ document.getElementById('add-property-form').addEventListener('submit', async (e
         console.log('Submitting Property Data:', propertyData);
         
         // Submit to backend API
-        const token = getAuthToken();
+        const token = getToken();
         
         if (!token) {
             showAlert('❌ Not authenticated. Please log in.', 'danger');
@@ -443,7 +443,7 @@ document.getElementById('add-property-form').addEventListener('submit', async (e
         const result = await response.json();
         
         if (response.ok) {
-            showAlert('✅ Property added successfully!', 'success');
+            showAlert('Property added successfully!', 'success');
             
             // Clear form
             e.target.reset();

@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load property details from API
 async function loadPropertyDetails(id) {
     try {
-        const token = getAuthToken();
+        const token = getToken();
         
         const response = await fetch(`${API_URL}/properties/${id}`, {
             headers: {
@@ -491,7 +491,7 @@ function deleteProperty(id, name) {
 // Confirm delete
 async function confirmDelete(id) {
     try {
-        const token = getAuthToken();
+        const token = getToken();
         
         const response = await fetch(`${API_URL}/properties/${id}`, {
             method: 'DELETE',
@@ -504,14 +504,14 @@ async function confirmDelete(id) {
 
         if (response.ok) {
             bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-            alert('✅ Property deleted successfully!');
+            alert(' Property deleted successfully!');
             window.location.href = 'list.html';
         } else {
             alert('❌ Error: ' + (result.error || 'Failed to delete property'));
         }
     } catch (error) {
         console.error('Error deleting property:', error);
-        alert('❌ Failed to delete property. Please try again.');
+        alert(' Failed to delete property. Please try again.');
     }
 }
 
