@@ -3,6 +3,16 @@
  * Auto-detects environment and provides centralized API endpoints with caching
  */
 
+// Storage Keys Configuration
+const STORAGE_KEYS = {
+  TOKEN: 'token',
+  USER: 'user',
+  REFRESH_TOKEN: 'refreshToken',
+  REMEMBER_ME: 'rememberMe',
+  THEME: 'theme',
+  LANGUAGE: 'language'
+};
+
 // Environment Configuration
 const ENV_CONFIG = {
   development: {
@@ -74,7 +84,7 @@ const CacheService = {
         this.cache.set(key, { data, expires });
         
         if (ENV_SETTINGS.DEBUG) {
-            console.log(` Cached: ${key} (expires in ${ttl || ENV_SETTINGS.CACHE_TTL}ms)`);
+            console.log(`📦 Cached: ${key} (expires in ${ttl || ENV_SETTINGS.CACHE_TTL}ms)`);
         }
     },
     
@@ -128,7 +138,7 @@ const CacheService = {
     printStats() {
         const stats = this.getStats();
         console.log('═══════════════════════════════════════');
-        console.log(' Cache Statistics');
+        console.log('📊 Cache Statistics');
         console.log('═══════════════════════════════════════');
         console.log('Hits:', stats.hits);
         console.log('Misses:', stats.misses);
@@ -292,7 +302,7 @@ const ConfigUtils = {
   
   printConfig() {
     console.log('═══════════════════════════════════════');
-    console.log(' SimamiaKodi API Configuration');
+    console.log('⚙️ SimamiaKodi API Configuration');
     console.log('═══════════════════════════════════════');
     console.log('Environment:', API_CONFIG.ENVIRONMENT);
     console.log('Base URL:', API_CONFIG.BASE_URL);
@@ -318,14 +328,14 @@ const ConfigUtils = {
       
       if (response.ok) {
         const data = await response.json();
-        console.log(` Connection successful (${duration}ms):`, data);
+        console.log(`✅ Connection successful (${duration}ms):`, data);
         return true;
       } else {
-        console.warn(' Connection failed:', response.status);
+        console.warn('⚠️ Connection failed:', response.status);
         return false;
       }
     } catch (error) {
-      console.error(' Connection error:', error.message);
+      console.error('❌ Connection error:', error.message);
       return false;
     }
   }
@@ -342,13 +352,14 @@ if (API_CONFIG.DEBUG) {
 
 // Make everything globally available
 window.API_CONFIG = API_CONFIG;
+window.STORAGE_KEYS = STORAGE_KEYS;
 window.CacheService = CacheService;
 window.ConfigUtils = ConfigUtils;
 
 // Development helpers
 if (API_CONFIG.IS_DEVELOPMENT) {
-  console.log(' Development Mode Active');
-  console.log(' Available commands:');
+  console.log('🔧 Development Mode Active');
+  console.log('📋 Available commands:');
   console.log('   ConfigUtils.printConfig() - Show config');
   console.log('   ConfigUtils.testConnection() - Test API');
   console.log('   CacheService.printStats() - Show cache stats');
@@ -357,5 +368,5 @@ if (API_CONFIG.IS_DEVELOPMENT) {
 
 // Export for modules
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { API_CONFIG, CacheService, ConfigUtils };
+  module.exports = { API_CONFIG, STORAGE_KEYS, CacheService, ConfigUtils };
 }
