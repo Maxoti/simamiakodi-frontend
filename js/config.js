@@ -275,18 +275,18 @@ const ConfigUtils = {
   setEnvironment(env) {
     if (ENV_CONFIG[env]) {
       localStorage.setItem('ENV_OVERRIDE', env);
-      console.log(`✅ Environment set to: ${env}`);
-      console.log('🔄 Please refresh the page');
+      console.log(` Environment set to: ${env}`);
+      console.log(' Please refresh the page');
       return true;
     }
-    console.error(`❌ Invalid environment: ${env}`);
+    console.error(` Invalid environment: ${env}`);
     return false;
   },
   
   clearEnvironmentOverride() {
     localStorage.removeItem('ENV_OVERRIDE');
-    console.log('✅ Environment override cleared');
-    console.log('🔄 Please refresh the page');
+    console.log('Environment override cleared');
+    console.log('Please refresh the page');
   },
   
   getConfig() {
@@ -302,7 +302,7 @@ const ConfigUtils = {
   
   printConfig() {
     console.log('═══════════════════════════════════════');
-    console.log('⚙️ SimamiaKodi API Configuration');
+    console.log(' SimamiaKodi API Configuration');
     console.log('═══════════════════════════════════════');
     console.log('Environment:', API_CONFIG.ENVIRONMENT);
     console.log('Base URL:', API_CONFIG.BASE_URL);
@@ -315,7 +315,7 @@ const ConfigUtils = {
   
   async testConnection() {
     try {
-      console.log('🔍 Testing connection to:', API_CONFIG.BASE_URL);
+      console.log(' Testing connection to:', API_CONFIG.BASE_URL);
       const start = performance.now();
       
       const response = await fetch(API_CONFIG.BASE_URL + '/api/health', {
@@ -328,14 +328,14 @@ const ConfigUtils = {
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Connection successful (${duration}ms):`, data);
+        console.log(`Connection successful (${duration}ms):`, data);
         return true;
       } else {
-        console.warn('⚠️ Connection failed:', response.status);
+        console.warn('Connection failed:', response.status);
         return false;
       }
     } catch (error) {
-      console.error('❌ Connection error:', error.message);
+      console.error('Connection error:', error.message);
       return false;
     }
   }
