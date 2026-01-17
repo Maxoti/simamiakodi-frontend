@@ -8,11 +8,7 @@ const AUTH_API_URL = (() => {
   return `${API_CONFIG.BASE_URL}/api/auth`;
 })();
 
-const STORAGE_KEYS = {
-  TOKEN: 'auth_token',
-  USER: 'user_data',
-  REMEMBER: 'remember_me'
-};
+
 
 // -------------------- INIT --------------------
 function initAuth() {
