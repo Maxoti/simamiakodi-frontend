@@ -3,13 +3,21 @@ const API_BASE = `${API_CONFIG.BASE_URL}/api`;
 
 // ===== AUTHENTICATION =====
 function getToken() {
-    return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    // Check for both 'token' and 'auth_token' for compatibility
+    return localStorage.getItem('token') || 
+           localStorage.getItem('auth_token') || 
+           sessionStorage.getItem('token') ||
+           sessionStorage.getItem('auth_token');
 }
 
 function handleLogout() {
     if (confirm('Are you sure you want to logout?')) {
+        // Remove all possible token keys
+        localStorage.removeItem('token');
         localStorage.removeItem('auth_token');
+        sessionStorage.removeItem('token');
         sessionStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
         localStorage.removeItem('user_data');
         localStorage.removeItem('remember_me');
         window.location.href = 'pages/auth/login.html';
@@ -18,7 +26,7 @@ function handleLogout() {
 
 // ===== INITIALIZATION =====
 function initDashboard() {
-    console.log(' Initializing Dashboard...');
+    console.log('Initializing Dashboard...');
     console.log('API Base URL:', API_BASE);
     
     // Check if user is authenticated
@@ -30,6 +38,8 @@ function initDashboard() {
         return;
     }
     
+    console.log(' Token found, user is authenticated');
+    
     // Display user information
     displayUserInfo();
     
@@ -39,7 +49,8 @@ function initDashboard() {
 
 function displayUserInfo() {
     try {
-        const userData = localStorage.getItem('user_data');
+        // Check for both 'user' and 'user_data' for compatibility
+        const userData = localStorage.getItem('user') || localStorage.getItem('user_data');
         
         if (userData) {
             const user = JSON.parse(userData);
@@ -61,7 +72,7 @@ function displayUserInfo() {
             console.log(' Logged in as:', user.username || user.fullName);
         }
     } catch (error) {
-        console.error('❌ Error displaying user info:', error);
+        console.error(' Error displaying user info:', error);
     }
 }
 
@@ -83,7 +94,7 @@ function updateStat(id, value, change) {
 // ===== API FUNCTIONS =====
 async function fetchAPI(endpoint, timeoutMs = 5000) {
     try {
-        console.log(`🔄 Fetching: ${API_BASE}${endpoint}`);
+        console.log(` Fetching: ${API_BASE}${endpoint}`);
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -105,12 +116,12 @@ async function fetchAPI(endpoint, timeoutMs = 5000) {
         clearTimeout(timeoutId);
         
         if (!response.ok) {
-            console.error(`❌ Failed to fetch ${endpoint}: ${response.status}`);
+            console.error(` Failed to fetch ${endpoint}: ${response.status}`);
             return [];
         }
         
         const result = await response.json();
-        console.log(`✅ ${endpoint} result:`, result);
+        console.log(` ${endpoint} result:`, result);
         
         // Handle different response formats
         if (result.success && Array.isArray(result.data)) {
@@ -124,9 +135,9 @@ async function fetchAPI(endpoint, timeoutMs = 5000) {
         return [];
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.error(`⏱️ Timeout fetching ${endpoint}`);
+            console.error(` Timeout fetching ${endpoint}`);
         } else {
-            console.error(`❌ Error fetching ${endpoint}:`, error);
+            console.error(`Error fetching ${endpoint}:`, error);
         }
         return [];
     }
@@ -155,8 +166,8 @@ async function loadDashboard() {
             results.map(result => result.status === 'fulfilled' ? result.value : []);
         
         const endTime = performance.now();
-        console.log(`✅ Data loaded in ${(endTime - startTime).toFixed(0)}ms`);
-        console.log('📦 Data counts:', { 
+        console.log(` Data loaded in ${(endTime - startTime).toFixed(0)}ms`);
+        console.log(' Data counts:', { 
             properties: properties.length, 
             units: units.length, 
             tenants: tenants.length,
@@ -183,7 +194,7 @@ async function loadDashboard() {
         loadPaymentsTable(payments, tenants, units);
         loadPendingTasks(maintenance, tenants);
         
-        console.log('✅ Dashboard loaded successfully');
+        console.log(' Dashboard loaded successfully');
         
     } catch (error) {
         console.error('❌ Error loading dashboard:', error);
@@ -238,7 +249,7 @@ function loadPaymentsTable(payments, tenants, units) {
     const tbody = document.getElementById('recentPaymentsTable');
     
     if (!tbody) {
-        console.warn('⚠️ recentPaymentsTable element not found');
+        console.warn(' recentPaymentsTable element not found');
         return;
     }
     
@@ -276,7 +287,7 @@ function loadPendingTasks(maintenance, tenants) {
     const tasksList = document.getElementById('pendingTasksList');
     
     if (!tasksList) {
-        console.warn('⚠️ pendingTasksList element not found');
+        console.warn('pendingTasksList element not found');
         return;
     }
     
