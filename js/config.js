@@ -84,7 +84,7 @@ const CacheService = {
         this.cache.set(key, { data, expires });
         
         if (ENV_SETTINGS.DEBUG) {
-            console.log(`📦 Cached: ${key} (expires in ${ttl || ENV_SETTINGS.CACHE_TTL}ms)`);
+            console.log(`Cached: ${key} (expires in ${ttl || ENV_SETTINGS.CACHE_TTL}ms)`);
         }
     },
     
