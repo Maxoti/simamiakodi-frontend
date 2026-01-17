@@ -1,12 +1,3 @@
-// ============================================
-// LOGIN.JS - SimamiaKodi Login Handler
-// ============================================
-
-// Get backend URL from config
-const BACKEND_URL = API_BASE_URL || 'https://simamiakodi-backend.onrender.com';
-
-console.log(' Login page loaded');
-console.log(' Backend URL:', BACKEND_URL);
 
 // ============================================
 // PASSWORD TOGGLE
