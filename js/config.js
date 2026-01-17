@@ -113,14 +113,14 @@ const CacheService = {
     delete(key) {
         this.cache.delete(key);
         if (ENV_SETTINGS.DEBUG) {
-            console.log(`🗑️ Cleared cache: ${key}`);
+            console.log(`Cleared cache: ${key}`);
         }
     },
     
     clear() {
         this.cache.clear();
         this.stats = { hits: 0, misses: 0 };
-        console.log('🗑️ All cache cleared');
+        console.log(' All cache cleared');
     },
     
     getStats() {
@@ -358,8 +358,8 @@ window.ConfigUtils = ConfigUtils;
 
 // Development helpers
 if (API_CONFIG.IS_DEVELOPMENT) {
-  console.log('🔧 Development Mode Active');
-  console.log('📋 Available commands:');
+  console.log(' Development Mode Active');
+  console.log(' Available commands:');
   console.log('   ConfigUtils.printConfig() - Show config');
   console.log('   ConfigUtils.testConnection() - Test API');
   console.log('   CacheService.printStats() - Show cache stats');
