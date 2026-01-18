@@ -390,27 +390,24 @@
             </div>
         </div>
     </div>
+
 <script src="../../js/config.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- CRITICAL: Load auth.js FIRST -->
-    <script src="../../js/auth.js"></script>
-    
-    <!-- Payment Script -->
-    <script>
-        const API_URL = `${API_CONFIG.BASE_URL}/api`;
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/auth.js"></script>
+
+<script>
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
+
+// Protect page using auth.js
+if (!protectPage()) {
+    console.log('⛔ Access denied');
+}
 
 let tenants = [];
 let properties = {};
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // Protect page first
-    if (!protectPage()) {
-        return;
-    }
-    
     setDefaultDate();
     loadActiveTenants();
     setupEventListeners();
@@ -419,48 +416,78 @@ document.addEventListener('DOMContentLoaded', () => {
 // Set default date to today
 function setDefaultDate() {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('paymentDate').value = today;
-    updatePaymentMonth();
+    const paymentDateInput = document.getElementById('paymentDate');
+    if (paymentDateInput) {
+        paymentDateInput.value = today;
+        updatePaymentMonth();
+    }
 }
 
 // Setup event listeners
 function setupEventListeners() {
-    document.getElementById('paymentDate').addEventListener('change', updatePaymentMonth);
-    document.getElementById('paymentMethod').addEventListener('change', toggleMpesaField);
-    document.getElementById('tenantSelect').addEventListener('change', handleTenantChange);
-    document.getElementById('paymentForm').addEventListener('submit', handleSubmit);
+    const paymentDate = document.getElementById('paymentDate');
+    const paymentMethod = document.getElementById('paymentMethod');
+    const tenantSelect = document.getElementById('tenantSelect');
+    const paymentForm = document.getElementById('paymentForm');
+    
+    if (paymentDate) paymentDate.addEventListener('change', updatePaymentMonth);
+    if (paymentMethod) paymentMethod.addEventListener('change', toggleMpesaField);
+    if (tenantSelect) tenantSelect.addEventListener('change', handleTenantChange);
+    if (paymentForm) paymentForm.addEventListener('submit', handleSubmit);
 }
 
 // Load active tenants only
 async function loadActiveTenants() {
     try {
-        const token = getAuthToken();
+        const token = getToken(); // ✅ Use getToken() from auth.js
+        
+        if (!token) {
+            showError('Not authenticated. Please log in.');
+            setTimeout(() => location.href = '/pages/auth/login.html', 1500);
+            return;
+        }
+        
+        console.log('🔍 Fetching tenants from:', `${API_URL}/tenants`);
         
         const response = await fetch(`${API_URL}/tenants`, {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
 
-        if (!response.ok) throw new Error('Failed to load tenants');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
         const result = await response.json();
+        console.log('📦 Tenants response:', result);
+        
+        // Handle different response formats
+        const allTenants = result.data || result.tenants || result;
+        
         // Filter for active tenants only
-        tenants = (result.data || []).filter(tenant => tenant.is_active);
+        tenants = allTenants.filter(tenant => 
+            tenant.is_active === true || tenant.is_active === 1 || tenant.status === 'active'
+        );
 
-        console.log('All tenants:', result.data?.length || 0);
+        console.log('All tenants:', allTenants.length);
         console.log('Active tenants:', tenants.length);
 
         if (tenants.length === 0) {
-            showError('No active tenants found. Please add tenants first.');
-            document.getElementById('tenantSelect').disabled = true;
+            showError('⚠️ No active tenants found. Please add tenants first.');
+            const tenantSelect = document.getElementById('tenantSelect');
+            if (tenantSelect) {
+                tenantSelect.innerHTML = '<option value="">No active tenants available</option>';
+                tenantSelect.disabled = true;
+            }
             return;
         }
 
         populateTenantSelect();
     } catch (error) {
-        console.error('Error loading tenants:', error);
-        showError('Failed to load tenants. Please refresh the page.');
+        console.error('❌ Error loading tenants:', error);
+        showError(`Failed to load tenants: ${error.message}`);
     }
 }
 
@@ -469,17 +496,21 @@ function populateTenantSelect() {
     const select = document.getElementById('tenantSelect');
     
     if (!select) {
-        console.error('tenantSelect element not found!');
+        console.error('❌ tenantSelect element not found!');
         return;
     }
     
-    // Clear existing options except the first one
+    // Clear existing options
     select.innerHTML = '<option value="">-- Choose a tenant --</option>';
     
     tenants.forEach(tenant => {
         const option = document.createElement('option');
-        option.value = tenant.tenant_id;
-        option.textContent = `${tenant.full_name} - Unit ${tenant.unit_number || 'N/A'}`;
+        option.value = tenant.tenant_id || tenant.id;
+        
+        const tenantName = tenant.full_name || tenant.name || `Tenant ${tenant.tenant_id}`;
+        const unitNumber = tenant.unit_number || 'N/A';
+        
+        option.textContent = `${tenantName} - Unit ${unitNumber}`;
         option.dataset.tenant = JSON.stringify(tenant);
         select.appendChild(option);
     });
@@ -490,34 +521,33 @@ function populateTenantSelect() {
 // Handle tenant selection change
 function handleTenantChange(e) {
     const selectedOption = e.target.options[e.target.selectedIndex];
+    const tenantInfoCard = document.getElementById('tenantInfoCard');
     
     if (!selectedOption.dataset.tenant) {
-        document.getElementById('tenantInfoCard').style.display = 'none';
+        if (tenantInfoCard) tenantInfoCard.style.display = 'none';
         const propertySelect = document.getElementById('propertySelect');
         if (propertySelect) propertySelect.disabled = true;
         return;
     }
 
     const tenant = JSON.parse(selectedOption.dataset.tenant);
+    console.log('📋 Selected tenant:', tenant);
     
     // Display tenant info
     const displayUnit = document.getElementById('displayUnit');
     const displayRent = document.getElementById('displayRent');
     const displayBalance = document.getElementById('displayBalance');
-    const tenantInfoCard = document.getElementById('tenantInfoCard');
     
     if (displayUnit) displayUnit.textContent = tenant.unit_number || 'N/A';
-    if (displayRent) displayRent.textContent = formatMoney(tenant.monthly_rent);
+    if (displayRent) displayRent.textContent = formatMoney(tenant.monthly_rent || 0);
     if (displayBalance) displayBalance.textContent = formatMoney(tenant.rent_balance || 0);
     if (tenantInfoCard) tenantInfoCard.style.display = 'block';
 
     // Set property
-    if (tenant.property_name) {
-        const propertySelect = document.getElementById('propertySelect');
-        if (propertySelect) {
-            propertySelect.innerHTML = `<option value="${tenant.property_id}">${tenant.property_name}</option>`;
-            propertySelect.disabled = false;
-        }
+    const propertySelect = document.getElementById('propertySelect');
+    if (propertySelect && tenant.property_name) {
+        propertySelect.innerHTML = `<option value="${tenant.property_id || tenant.property_id}">${tenant.property_name}</option>`;
+        propertySelect.disabled = false;
     }
 
     // Suggest amount if rent is available
@@ -529,18 +559,18 @@ function handleTenantChange(e) {
 
 // Update payment month based on payment date
 function updatePaymentMonth() {
-    const dateInput = document.getElementById('paymentDate').value;
+    const dateInput = document.getElementById('paymentDate');
     const monthInput = document.getElementById('paymentMonth');
     
-    if (dateInput && monthInput) {
-        const month = dateInput.substring(0, 7);
+    if (dateInput && monthInput && dateInput.value) {
+        const month = dateInput.value.substring(0, 7);
         monthInput.value = month;
     }
 }
 
 // Toggle M-Pesa code field visibility
 function toggleMpesaField() {
-    const method = document.getElementById('paymentMethod').value;
+    const method = document.getElementById('paymentMethod')?.value || '';
     const mpesaField = document.getElementById('mpesaCodeField');
     
     if (!mpesaField) return;
@@ -564,11 +594,11 @@ function setQuickAmount(amount) {
 async function handleSubmit(e) {
     e.preventDefault();
 
-    const tenantId = document.getElementById('tenantSelect').value;
-    const amount = document.getElementById('amount').value;
-    const paymentMethod = document.getElementById('paymentMethod').value;
-    const paymentDate = document.getElementById('paymentDate').value;
-    const paymentMonth = document.getElementById('paymentMonth').value;
+    const tenantId = document.getElementById('tenantSelect')?.value;
+    const amount = document.getElementById('amount')?.value;
+    const paymentMethod = document.getElementById('paymentMethod')?.value;
+    const paymentDate = document.getElementById('paymentDate')?.value;
+    const paymentMonth = document.getElementById('paymentMonth')?.value;
     const mpesaCode = document.getElementById('mpesaCode')?.value || '';
     const referenceNumber = document.getElementById('referenceNumber')?.value || '';
     const notes = document.getElementById('notes')?.value || '';
@@ -586,7 +616,7 @@ async function handleSubmit(e) {
     }
 
     // Get tenant details for property_id and unit_id
-    const selectedTenant = tenants.find(t => t.tenant_id == tenantId);
+    const selectedTenant = tenants.find(t => (t.tenant_id || t.id) == tenantId);
     if (!selectedTenant) {
         showError('Please select a valid tenant');
         return;
@@ -614,8 +644,14 @@ async function handleSubmit(e) {
         notes: notes || null
     };
 
+    console.log('📤 Submitting payment:', paymentData);
+
     try {
-        const token = getAuthToken();
+        const token = getToken(); // ✅ Use getToken() from auth.js
+        
+        if (!token) {
+            throw new Error('Not authenticated. Please log in.');
+        }
         
         const response = await fetch(`${API_URL}/payments`, {
             method: 'POST',
@@ -630,14 +666,12 @@ async function handleSubmit(e) {
 
         if (response.ok) {
             showSuccess('✅ Payment recorded successfully!');
-            setTimeout(() => {
-                window.location.href = 'list.html';
-            }, 1500);
+            setTimeout(() => location.href = 'list.html', 1500);
         } else {
             throw new Error(result.error || result.message || 'Failed to record payment');
         }
     } catch (error) {
-        console.error('Error recording payment:', error);
+        console.error('❌ Error recording payment:', error);
         showError(error.message || 'Failed to record payment. Please try again.');
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
@@ -680,6 +714,6 @@ function showError(message) {
     document.body.appendChild(alert);
     setTimeout(() => alert.remove(), 5000);
 }
-    </script>
+</script>
 </body>
 </html>
