@@ -30,7 +30,12 @@ const UtilityApp = {
         if (form) {
             form.addEventListener('submit', (e) => this.handleSubmit(e));
         }
-
+ // Add utility button - NEW
+    const addBtn = document.getElementById('addUtilityBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', () => this.openModal());
+    }
+    
         // Search and filters
         this.addListener('searchInput', 'input', () => this.applyFilters());
         this.addListener('filterProperty', 'change', () => this.applyFilters());
@@ -148,6 +153,7 @@ const UtilityApp = {
             this.state.properties = [];
             this.populatePropertyDropdowns();
         }
+
     },
 
     async fetchUnits() {
@@ -832,7 +838,7 @@ const UtilityApp = {
         alert('Error: ' + message);
     }
 };
-
+window.UtilityApp = UtilityApp;
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     UtilityApp.init();

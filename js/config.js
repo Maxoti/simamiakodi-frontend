@@ -138,7 +138,7 @@ const CacheService = {
     printStats() {
         const stats = this.getStats();
         console.log('═══════════════════════════════════════');
-        console.log('📊 Cache Statistics');
+        console.log(' Cache Statistics');
         console.log('═══════════════════════════════════════');
         console.log('Hits:', stats.hits);
         console.log('Misses:', stats.misses);
