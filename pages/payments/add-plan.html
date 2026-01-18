@@ -348,14 +348,14 @@
         </div>
     </div>
 <script src="../../js/config.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="../../js/auth.js"></script>
-    <script>
-     // Protect this page
-protectPage();
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/auth.js"></script>
+
+<script>
+// Protect this page using auth.js
+if (!protectPage()) {
+    console.log('⛔ Access denied');
+}
 
 const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
@@ -374,121 +374,197 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Setup event listeners
 function setupEventListeners() {
-    document.getElementById('totalAmount').addEventListener('input', updateCalculations);
-    document.getElementById('installmentAmount').addEventListener('input', updateCalculations);
-    document.getElementById('frequency').addEventListener('change', updateCalculations);
-    document.getElementById('paymentPlanForm').addEventListener('submit', handleSubmit);
+    const totalAmount = document.getElementById('totalAmount');
+    const installmentAmount = document.getElementById('installmentAmount');
+    const frequency = document.getElementById('frequency');
+    const paymentPlanForm = document.getElementById('paymentPlanForm');
+    const tenantSelect = document.getElementById('tenantSelect');
+    
+    if (totalAmount) totalAmount.addEventListener('input', updateCalculations);
+    if (installmentAmount) installmentAmount.addEventListener('input', updateCalculations);
+    if (frequency) frequency.addEventListener('change', updateCalculations);
+    if (paymentPlanForm) paymentPlanForm.addEventListener('submit', handleSubmit);
     
     // Update property when tenant is selected
-    document.getElementById('tenantSelect').addEventListener('change', function() {
-        const selectedTenant = tenants.find(t => t.tenant_id == this.value);
-        if (selectedTenant) {
-            document.getElementById('propertySelect').value = selectedTenant.property_id || '';
-            document.getElementById('unitSelect').value = selectedTenant.unit_id || '';
-        }
-    });
+    if (tenantSelect) {
+        tenantSelect.addEventListener('change', function() {
+            const selectedTenant = tenants.find(t => (t.tenant_id || t.id) == this.value);
+            if (selectedTenant) {
+                const propertySelect = document.getElementById('propertySelect');
+                const unitSelect = document.getElementById('unitSelect');
+                if (propertySelect) propertySelect.value = selectedTenant.property_id || '';
+                if (unitSelect) unitSelect.value = selectedTenant.unit_id || '';
+            }
+        });
+    }
 }
 
 // Load tenants
 async function loadTenants() {
     try {
-        const token = getAuthToken();
+        const token = getToken(); // ✅ Use getToken() from auth.js
+        
+        if (!token) {
+            showAlert('Not authenticated. Please log in.', 'danger');
+            setTimeout(() => location.href = '/pages/auth/login.html', 1500);
+            return;
+        }
+        
+        console.log('🔍 Fetching tenants...');
+        
         const response = await fetch(`${API_URL}/tenants`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
 
-        if (!response.ok) throw new Error('Failed to load tenants');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
         const result = await response.json();
-        tenants = result.data || [];
+        console.log('📦 Tenants response:', result);
+        
+        tenants = result.data || result.tenants || result;
 
         const select = document.getElementById('tenantSelect');
+        if (!select) {
+            console.error('❌ tenantSelect element not found');
+            return;
+        }
+        
+        select.innerHTML = '<option value="">-- Select Tenant --</option>';
+        
         tenants.forEach(tenant => {
             const option = document.createElement('option');
-            option.value = tenant.tenant_id;
-            option.textContent = `${tenant.full_name} - ${tenant.phone}`;
+            option.value = tenant.tenant_id || tenant.id;
+            option.textContent = `${tenant.full_name || tenant.name} - ${tenant.phone || 'No phone'}`;
             select.appendChild(option);
         });
+        
+        console.log(`✅ Loaded ${tenants.length} tenants`);
     } catch (error) {
-        console.error('Error loading tenants:', error);
-        alert('Failed to load tenants. Please refresh the page.');
+        console.error('❌ Error loading tenants:', error);
+        showAlert('Failed to load tenants. Please refresh the page.', 'danger');
     }
 }
 
 // Load properties
 async function loadProperties() {
     try {
-        const token = getAuthToken();
+        const token = getToken(); // ✅ Use getToken() from auth.js
+        
+        console.log('🔍 Fetching properties...');
+        
         const response = await fetch(`${API_URL}/properties`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
 
-        if (!response.ok) throw new Error('Failed to load properties');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
         const result = await response.json();
-        properties = result.data || [];
+        console.log('📦 Properties response:', result);
+        
+        properties = result.data || result.properties || result;
 
         const select = document.getElementById('propertySelect');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">-- Select Property --</option>';
+        
         properties.forEach(property => {
             const option = document.createElement('option');
-            option.value = property.property_id;
-            option.textContent = property.property_name;
+            option.value = property.property_id || property.id;
+            option.textContent = property.property_name || property.name;
             select.appendChild(option);
         });
+        
+        console.log(`✅ Loaded ${properties.length} properties`);
     } catch (error) {
-        console.error('Error loading properties:', error);
+        console.error('❌ Error loading properties:', error);
     }
 }
 
 // Load units
 async function loadUnits() {
     try {
-        const token = getAuthToken();
+        const token = getToken(); // ✅ Use getToken() from auth.js
+        
+        console.log('🔍 Fetching units...');
+        
         const response = await fetch(`${API_URL}/units`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
 
-        if (!response.ok) throw new Error('Failed to load units');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
         const result = await response.json();
-        units = result.data || [];
+        console.log('📦 Units response:', result);
+        
+        units = result.data || result.units || result;
 
         const select = document.getElementById('unitSelect');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">-- Select Unit --</option>';
+        
         units.forEach(unit => {
             const option = document.createElement('option');
-            option.value = unit.unit_id;
+            option.value = unit.unit_id || unit.id;
             option.textContent = `${unit.unit_number} - ${unit.property_name || ''}`;
             select.appendChild(option);
         });
+        
+        console.log(`✅ Loaded ${units.length} units`);
     } catch (error) {
-        console.error('Error loading units:', error);
+        console.error('❌ Error loading units:', error);
     }
 }
 
 // Set default date to today
 function setDefaultDate() {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').value = today;
+    const startDateInput = document.getElementById('startDate');
+    if (startDateInput) {
+        startDateInput.value = today;
+    }
 }
 
 // Update calculations
 function updateCalculations() {
-    const total = parseFloat(document.getElementById('totalAmount').value) || 0;
-    const installment = parseFloat(document.getElementById('installmentAmount').value) || 0;
-    const frequency = document.getElementById('frequency').value;
+    const total = parseFloat(document.getElementById('totalAmount')?.value) || 0;
+    const installment = parseFloat(document.getElementById('installmentAmount')?.value) || 0;
+    const frequency = document.getElementById('frequency')?.value || '';
 
     // Update preview
-    document.getElementById('previewTotal').textContent = `KES ${formatMoney(total)}`;
-    document.getElementById('previewInstallment').textContent = `KES ${formatMoney(installment)}`;
-    document.getElementById('previewFrequency').textContent = frequency ? capitalizeFirst(frequency) : '-';
+    const previewTotal = document.getElementById('previewTotal');
+    const previewInstallment = document.getElementById('previewInstallment');
+    const previewFrequency = document.getElementById('previewFrequency');
+    const previewInstallments = document.getElementById('previewInstallments');
+    const previewBalance = document.getElementById('previewBalance');
+    
+    if (previewTotal) previewTotal.textContent = `KES ${formatMoney(total)}`;
+    if (previewInstallment) previewInstallment.textContent = `KES ${formatMoney(installment)}`;
+    if (previewFrequency) previewFrequency.textContent = frequency ? capitalizeFirst(frequency) : '-';
     
     if (installment > 0) {
         const numInstallments = Math.ceil(total / installment);
-        document.getElementById('previewInstallments').textContent = numInstallments;
-        document.getElementById('previewBalance').textContent = `KES ${formatMoney(total)}`;
+        if (previewInstallments) previewInstallments.textContent = numInstallments;
+        if (previewBalance) previewBalance.textContent = `KES ${formatMoney(total)}`;
     } else {
-        document.getElementById('previewInstallments').textContent = '0';
-        document.getElementById('previewBalance').textContent = `KES ${formatMoney(total)}`;
+        if (previewInstallments) previewInstallments.textContent = '0';
+        if (previewBalance) previewBalance.textContent = `KES ${formatMoney(total)}`;
     }
 }
 
@@ -497,35 +573,43 @@ async function handleSubmit(e) {
     e.preventDefault();
 
     const formData = {
-        tenant_id: parseInt(document.getElementById('tenantSelect').value),
-        property_id: document.getElementById('propertySelect').value ? 
+        tenant_id: parseInt(document.getElementById('tenantSelect')?.value),
+        property_id: document.getElementById('propertySelect')?.value ? 
             parseInt(document.getElementById('propertySelect').value) : null,
-        unit_id: document.getElementById('unitSelect').value ? 
+        unit_id: document.getElementById('unitSelect')?.value ? 
             parseInt(document.getElementById('unitSelect').value) : null,
-        total_amount: parseFloat(document.getElementById('totalAmount').value),
-        installment_amount: parseFloat(document.getElementById('installmentAmount').value),
-        installment_frequency: document.getElementById('frequency').value,
-        start_date: document.getElementById('startDate').value,
-        end_date: document.getElementById('endDate').value || null,
-        description: document.getElementById('description').value.trim() || null
+        total_amount: parseFloat(document.getElementById('totalAmount')?.value),
+        installment_amount: parseFloat(document.getElementById('installmentAmount')?.value),
+        installment_frequency: document.getElementById('frequency')?.value,
+        start_date: document.getElementById('startDate')?.value,
+        end_date: document.getElementById('endDate')?.value || null,
+        description: document.getElementById('description')?.value.trim() || null
     };
 
     // Validation
     if (!formData.tenant_id) {
-        alert('Please select a tenant');
+        showAlert('Please select a tenant', 'danger');
         return;
     }
 
     if (formData.installment_amount > formData.total_amount) {
-        alert('Installment amount cannot be greater than total amount');
+        showAlert('Installment amount cannot be greater than total amount', 'danger');
         return;
     }
 
     // Show loading
-    document.getElementById('loadingOverlay').style.display = 'flex';
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
     try {
-        const token = getAuthToken();
+        const token = getToken(); // ✅ Use getToken() from auth.js
+        
+        if (!token) {
+            throw new Error('Not authenticated. Please log in.');
+        }
+        
+        console.log('📤 Submitting payment plan:', formData);
+        
         const response = await fetch(`${API_URL}/payment-plans`, {
             method: 'POST',
             headers: {
@@ -541,20 +625,20 @@ async function handleSubmit(e) {
             throw new Error(result.error || 'Failed to create payment plan');
         }
 
-        alert('✅ Payment plan created successfully!');
-        window.location.href = 'plans.html';
+        showAlert('✅ Payment plan created successfully!', 'success');
+        setTimeout(() => location.href = 'plans.html', 1500);
 
     } catch (error) {
-        console.error('Error creating payment plan:', error);
-        alert('❌ Error: ' + error.message);
+        console.error('❌ Error creating payment plan:', error);
+        showAlert('❌ ' + error.message, 'danger');
     } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
     }
 }
 
 // Format money
 function formatMoney(amount) {
-    if (!amount) return '0.00';
+    if (!amount && amount !== 0) return '0.00';
     return parseFloat(amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -566,6 +650,19 @@ function capitalizeFirst(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
-    </script>
+
+// Show alert function
+function showAlert(message, type = 'danger') {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+    alert.style.zIndex = '10000';
+    alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    setTimeout(() => alert.remove(), type === 'success' ? 3000 : 5000);
+}
+</script>
 </body>
 </html>
