@@ -269,6 +269,7 @@
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
+            min-height: 400px;
         }
 
         .table-header {
@@ -279,22 +280,33 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            background: #f8f9fa;
+        }
+
+        .table-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
         }
 
         .search-box input {
-            padding: 10px;
+            padding: 10px 15px;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             width: 250px;
+            font-size: 14px;
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 14px;
         }
 
         .data-table thead {
             background: #f8f9fa;
+            position: sticky;
+            top: 0;
         }
 
         .data-table th,
@@ -304,8 +316,24 @@
             border-bottom: 1px solid #dee2e6;
         }
 
+        .data-table th {
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tbody tr {
+            transition: background 0.2s;
+        }
+
         .data-table tbody tr:hover {
             background: #f8f9fa;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
         }
 
         .badge {
@@ -327,14 +355,43 @@
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #6c757d;
         }
 
         .empty-state-icon {
-            font-size: 64px;
+            font-size: 80px;
             margin-bottom: 20px;
-            opacity: 0.5;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
         }
 
         .modal {
@@ -345,13 +402,14 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.5);
-            z-index: 2000;
+            z-index: 10000;
             align-items: center;
             justify-content: center;
+            overflow-y: auto;
         }
 
         .modal.show {
-            display: flex;
+            display: flex !important;
         }
 
         .modal-content {
@@ -526,6 +584,39 @@
         <!-- Add your sidebar menu here -->
     </aside>
 
+    <script>
+        // Define modal functions globally at the top
+        function openAddModal() {
+            console.log('✅ openAddModal() called');
+            const modal = document.getElementById('agentModal');
+            if (!modal) {
+                console.error('❌ Modal element not found!');
+                return;
+            }
+            
+            if (typeof currentAgentId !== 'undefined') {
+                currentAgentId = null;
+            }
+            
+            document.getElementById('modalTitle').textContent = 'Add New Agent';
+            document.getElementById('saveButtonText').textContent = 'Save Agent';
+            document.getElementById('agentForm').reset();
+            
+            modal.classList.add('show');
+            console.log('✅ Modal opened');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('agentModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+            if (typeof currentAgentId !== 'undefined') {
+                currentAgentId = null;
+            }
+        }
+    </script>
+
     <!-- Unified Hero Section -->
     <div class="page-hero">
         <div class="hero-container">
@@ -549,7 +640,7 @@
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
-                    <button class="hero-btn" onclick="openAddModal()">
+                    <button class="hero-btn" onclick="openAddModal(); console.log('Button clicked!');">
                         <i class="fas fa-user-plus"></i>
                         <span>Add Agent</span>
                     </button>
@@ -797,9 +888,17 @@
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-info btn-sm" onclick="viewAgent(${agent.agent_id})">View</button>
-                        <button class="btn btn-warning btn-sm" onclick="editAgent(${agent.agent_id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteAgent(${agent.agent_id})">Delete</button>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <button class="btn btn-info btn-sm" onclick="viewAgent(${agent.agent_id})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editAgent(${agent.agent_id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAgent(${agent.agent_id})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -837,11 +936,14 @@
         }
 
         function openAddModal() {
+            console.log('✅ openAddModal() called from main script');
             currentAgentId = null;
             document.getElementById('modalTitle').textContent = 'Add New Agent';
             document.getElementById('saveButtonText').textContent = 'Save Agent';
             document.getElementById('agentForm').reset();
-            document.getElementById('agentModal').classList.add('show');
+            
+            const modal = document.getElementById('agentModal');
+            modal.classList.add('show');
         }
 
         function closeModal() {
@@ -960,7 +1062,6 @@
             displayFiltered(filtered);
         }
 
-        
         function filterAgents() {
             const status = document.getElementById('statusFilter').value;
             let filtered = agents;
