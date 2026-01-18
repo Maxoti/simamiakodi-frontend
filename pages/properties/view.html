@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Details - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .property-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .property-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+
+        .stat-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            width: 200px;
+            color: #666;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .section-title {
+            color: #198754;
+            font-weight: 600;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .unit-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .unit-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .badge-occupied {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge-vacant {
+            background: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-building me-2"></i><span id="propertyName">Property Details</span></h2>
+                    <p class="mb-0 opacity-75">Complete property information</p>
+                </div>
+                <a href="list.html" class="back-button">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="container pb-5">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading property details...</p>
+        </div>
+
+        <!-- Property Content -->
+        <div id="propertyContent" style="display: none;">
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-lg-8">
+                    <div class="property-card">
+                        <img id="propertyImage" src="" alt="Property" class="property-image">
+                        
+                        <h3 class="section-title">
+                            <i class="fas fa-info-circle me-2"></i>Property Information
+                        </h3>
+                        <div id="propertyInfo"></div>
+
+                        <h3 class="section-title">
+                            <i class="fas fa-door-open me-2"></i>Units (<span id="unitsCount">0</span>)
+                        </h3>
+                        <div id="unitsList"></div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Stats -->
+                <div class="col-lg-4">
+                    <div class="stat-card">
+                        <i class="fas fa-door-open" style="font-size: 2rem;"></i>
+                        <h3 id="totalUnits">0</h3>
+                        <p>Total Units</p>
+                    </div>
+
+                    <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <i class="fas fa-users" style="font-size: 2rem;"></i>
+                        <h3 id="occupiedUnits">0</h3>
+                        <p>Occupied Units</p>
+                    </div>
+
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                        <i class="fas fa-door-closed" style="font-size: 2rem;"></i>
+                        <h3 id="vacantUnits">0</h3>
+                        <p>Vacant Units</p>
+                    </div>
+
+                    <div class="property-card">
+                        <h5>Actions</h5>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="editProperty()">
+                                <i class="fas fa-edit me-2"></i>Edit Property
+                            </button>
+                            <button class="btn btn-success" onclick="addUnit()">
+                                <i class="fas fa-plus me-2"></i>Add Unit
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteProperty()">
+                                <i class="fas fa-trash me-2"></i>Delete Property
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" style="display: none;" class="text-center py-5">
+            <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+            <h3 class="mt-3">Error Loading Property</h3>
+            <p class="text-muted" id="errorMessage"></p>
+            <button class="btn btn-primary" onclick="loadPropertyDetails()">
+                <i class="fas fa-redo me-2"></i>Try Again
+            </button>
+        </div>
+    </div>
+
+    <script src="../../js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/auth.js"></script>
+
+    <script>
+        // Protect page
+        if (!protectPage()) {
+            console.log('⛔ Access denied');
+        }
+
+        let propertyId = null;
+
+        // Get property ID from URL
+        function getPropertyId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // Load property details
+        async function loadPropertyDetails() {
+            propertyId = getPropertyId();
+
+            if (!propertyId) {
+                showError('No property ID provided');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const token = getToken();
+                
+                if (!token) {
+                    window.location.href = '/pages/auth/login.html';
+                    return;
+                }
+
+                console.log('🔍 Fetching property:', propertyId);
+
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties/${propertyId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('📦 Property data:', data);
+
+                const property = data.data || data.property || data;
+                displayProperty(property);
+
+                // Load units for this property
+                loadUnits(propertyId);
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showError(error.message);
+            }
+        }
+
+        // Load units for property
+        async function loadUnits(propertyId) {
+            try {
+                const token = getToken();
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties/${propertyId}/units`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const units = data.data || data.units || data || [];
+                    displayUnits(units);
+                } else {
+                    // Fallback: get all units and filter by property
+                    const allUnitsResponse = await fetch(`${API_CONFIG.BASE_URL}/api/units`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (allUnitsResponse.ok) {
+                        const allUnitsData = await allUnitsResponse.json();
+                        const allUnits = allUnitsData.data || allUnitsData.units || allUnitsData || [];
+                        const propertyUnits = allUnits.filter(u => u.property_id == propertyId);
+                        displayUnits(propertyUnits);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error loading units:', error);
+            }
+        }
+
+        // Display property
+        function displayProperty(property) {
+            const propertyName = property.property_name || property.name || 'Unnamed Property';
+            const location = property.location || property.address || 'N/A';
+            const propertyType = property.property_type || property.type || 'N/A';
+            const totalUnits = property.total_units || property.units || 0;
+            const yearBuilt = property.year_built || 'N/A';
+            const floors = property.total_floors || property.floors || 'N/A';
+            const description = property.description || 'No description available';
+            const imageUrl = property.image_url || property.image || 'https://via.placeholder.com/800x400?text=' + encodeURIComponent(propertyName);
+
+            // Update header
+            document.getElementById('propertyName').textContent = propertyName;
+
+            // Update image
+            document.getElementById('propertyImage').src = imageUrl;
+            document.getElementById('propertyImage').alt = propertyName;
+
+            // Update info
+            document.getElementById('propertyInfo').innerHTML = `
+                <div class="info-row">
+                    <div class="info-label"><i class="fas fa-map-marker-alt me-2"></i>Location</div>
+                    <div class="info-value">${location}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fas fa-building me-2"></i>Type</div>
+                    <div class="info-value text-capitalize">${propertyType}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fas fa-calendar me-2"></i>Year Built</div>
+                    <div class="info-value">${yearBuilt}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fas fa-layer-group me-2"></i>Floors</div>
+                    <div class="info-value">${floors}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fas fa-info-circle me-2"></i>Description</div>
+                    <div class="info-value">${description}</div>
+                </div>
+            `;
+
+            // Update stats
+            document.getElementById('totalUnits').textContent = totalUnits;
+
+            showContent();
+        }
+
+        // Display units
+        function displayUnits(units) {
+            const container = document.getElementById('unitsList');
+            const unitsCount = document.getElementById('unitsCount');
+            
+            unitsCount.textContent = units.length;
+
+            const occupied = units.filter(u => u.is_occupied || u.status === 'occupied').length;
+            const vacant = units.length - occupied;
+
+            document.getElementById('occupiedUnits').textContent = occupied;
+            document.getElementById('vacantUnits').textContent = vacant;
+
+            if (units.length === 0) {
+                container.innerHTML = '<p class="text-muted">No units added yet.</p>';
+                return;
+            }
+
+            container.innerHTML = units.map(unit => {
+                const isOccupied = unit.is_occupied || unit.status === 'occupied';
+                const unitNumber = unit.unit_number || 'N/A';
+                const houseType = unit.house_type || unit.type || 'N/A';
+                const rent = unit.monthly_rent || 0;
+                const tenantName = unit.tenant_name || (isOccupied ? 'Occupied' : 'Vacant');
+
+                return `
+                    <div class="unit-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">Unit ${unitNumber}</h5>
+                                <p class="text-muted mb-2 text-capitalize">${houseType}</p>
+                                <p class="mb-1"><strong>Rent:</strong> KES ${rent.toLocaleString()}</p>
+                                ${isOccupied ? `<p class="mb-0"><strong>Tenant:</strong> ${tenantName}</p>` : ''}
+                            </div>
+                            <span class="badge ${isOccupied ? 'badge-occupied' : 'badge-vacant'}">
+                                ${isOccupied ? 'Occupied' : 'Vacant'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Show/hide states
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('propertyContent').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+        }
+
+        function showContent() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('propertyContent').style.display = 'block';
+            document.getElementById('errorState').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('propertyContent').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // Actions
+        function editProperty() {
+            window.location.href = `edit.html?id=${propertyId}`;
+        }
+
+        function addUnit() {
+            window.location.href = `../units/add.html?property_id=${propertyId}`;
+        }
+
+        async function deleteProperty() {
+            if (!confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const token = getToken();
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties/${propertyId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert(' Property deleted successfully!');
+                    window.location.href = 'list.html';
+                } else {
+                    throw new Error('Failed to delete property');
+                }
+            } catch (error) {
+                console.error(' Error:', error);
+                alert('Failed to delete property: ' + error.message);
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadPropertyDetails);
+    </script>
+</body>
+</html>
