@@ -424,7 +424,7 @@ document.getElementById('add-property-form').addEventListener('submit', async (e
         const token = getToken();
         
         if (!token) {
-            showAlert('❌ Not authenticated. Please log in.', 'danger');
+            showAlert('Not authenticated. Please log in.', 'danger');
             setTimeout(() => {
                 window.location.href = '/pages/auth/login.html';
             }, 1500);

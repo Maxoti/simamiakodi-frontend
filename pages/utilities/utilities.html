@@ -5,7 +5,170 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Utilities - SimamiaKodi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../CSS/mobile-nav.css">
     <style>
+        /* Hero Section Styles */
+        .page-hero {
+            position: relative;
+            padding: 30px 20px;
+            color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            margin-bottom: 0;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .hero-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hero-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            line-height: 1.2;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 150px;
+        }
+
+        .hero-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: white;
+            color: #6366f1;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .hero-btn.btn-outline {
+            background: transparent;
+            color: white;
+            border-color: rgba(255,255,255,0.8);
+        }
+
+        .hero-btn.btn-outline:hover {
+            background: white;
+            color: #6366f1;
+            border-color: white;
+        }
+
+        .hero-hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        .hero-hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .page-hero {
+                padding: 20px 15px;
+            }
+            
+            .hero-hamburger {
+                display: flex;
+            }
+            
+            .hero-top {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .hero-content {
+                width: 100%;
+            }
+            
+            .hero-icon {
+                font-size: 36px;
+                margin-bottom: 10px;
+            }
+            
+            .hero-title {
+                font-size: 1.5rem;
+            }
+            
+            .hero-description {
+                font-size: 0.9rem;
+            }
+            
+            .hero-actions {
+                flex-direction: row;
+                width: 100%;
+                gap: 10px;
+            }
+            
+            .hero-actions .hero-btn {
+                flex: 1;
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-actions {
+                flex-direction: column;
+            }
+            
+            .hero-actions .hero-btn {
+                width: 100%;
+            }
+        }
+    
         * {
             margin: 0;
             padding: 0;
@@ -34,49 +197,6 @@
             line-height: 1.6;
         }
 
-        /* Header */
-        .page-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            padding: 30px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .header-title h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-
-        .header-title p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
         /* Buttons */
         .btn {
             padding: 10px 20px;
@@ -90,26 +210,6 @@
             transition: all 0.3s;
             text-decoration: none;
             font-weight: 500;
-        }
-
-        .btn-dashboard {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        .btn-dashboard:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .btn-primary {
-            background-color: white;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
         }
 
         .btn-secondary {
@@ -155,7 +255,7 @@
         .alert {
             padding: 15px 20px;
             border-radius: 5px;
-            margin-bottom: 20px;
+            margin: 20px 40px;
             display: none;
             align-items: center;
             gap: 10px;
@@ -256,12 +356,6 @@
             align-items: center;
         }
 
-        @media (max-width: 768px) {
-            .filter-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .search-box {
             display: flex;
             align-items: center;
@@ -315,7 +409,6 @@
             font-size: 14px;
         }
 
-        /* Utilities List */
         #utilitiesList {
             min-height: 200px;
         }
@@ -404,13 +497,8 @@
             color: #004085;
         }
 
-        .text-danger {
-            color: var(--danger);
-        }
-
-        .text-success {
-            color: var(--success);
-        }
+        .text-danger { color: var(--danger); }
+        .text-success { color: var(--success); }
 
         /* Pagination */
         .pagination {
@@ -606,30 +694,86 @@
             font-size: 14px;
             margin-bottom: 20px;
         }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .alert {
+                margin: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .utility-body {
+                grid-template-columns: 1fr;
+            }
+
+            .utility-actions {
+                flex-direction: column;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+        }
     </style>
-    <link rel="stylesheet" href="../../CSS/mobile-nav.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="page-header">
-        <div class="header-left">
-            <div class="header-icon">
-                <i class="fas fa-bolt"></i>
-            </div>
-            <div class="header-title">
-                <h1>Utilities Management</h1>
-                <p>Track and manage utility bills and payments</p>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar (reuse from dashboard) -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4><i class="fas fa-home me-2"></i>SimamiaKodi</h4>
+        </div>
+        <!-- Add your sidebar menu here -->
+    </aside>
+
+    <!-- Unified Hero Section -->
+    <div class="page-hero hero-purple">
+        <div class="hero-container">
+            <div class="hero-top">
+                <button class="hero-hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <div class="hero-content">
+                    <div class="hero-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h1 class="hero-title">Utilities Management</h1>
+                    <p class="hero-description">Track and manage utility bills and payments</p>
+                </div>
+                
+                <div class="hero-actions">
+                    <a href="../../dashboard.html" class="hero-btn btn-outline">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <button class="hero-btn" onclick="UtilityApp.openModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Utility Bill</span>
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="header-actions">
-            <button class="btn btn-dashboard" onclick="window.location.href='../../dashboard.html'">
-                <i class="fas fa-home"></i> Dashboard
-            </button>
-            <button class="btn btn-primary" onclick="UtilityApp.openModal()">
-                <i class="fas fa-plus"></i> Add Utility Bill
-            </button>
-        </div>
-    </header>
+    </div>
 
     <!-- Alerts -->
     <div class="alert alert-success" id="successAlert">
@@ -847,4 +991,44 @@
             </form>
         </div>
     </div>
-<script src="../../js/UTILITY/utilities.js"></script>
+
+    <script>
+        console.log('✅ Page loaded');
+        
+        // Hamburger Menu Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        console.log('Hamburger:', hamburger);
+        console.log('Sidebar:', sidebar);
+        console.log('Overlay:', overlay);
+        
+        if (hamburger) {
+            hamburger.addEventListener('click', function() {
+                console.log('Hamburger clicked');
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
+                hamburger.classList.toggle('active');
+            });
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                console.log('Overlay clicked');
+                if (sidebar) sidebar.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                if (hamburger) hamburger.classList.remove('active');
+            });
+        }
+        
+        // Check if main content is visible
+        const mainContent = document.querySelector('.main-content');
+        console.log('Main content found:', mainContent ? 'Yes' : 'No');
+        
+        // Check if utilities.js loaded
+        console.log('UtilityApp:', typeof UtilityApp !== 'undefined' ? 'Loaded' : 'NOT LOADED');
+    </script>
+    <script src="../../js/UTILITY/utilities.js"></script>
+</body>
+</html>
