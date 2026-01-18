@@ -330,28 +330,14 @@
     <script src="../../js/auth.js"></script>
     <!-- Bootstrap JS -->
 
+
 <script>
-    // Authentication Check
-    const API_URL = `${API_CONFIG.BASE_URL}/api`;
-
-function protectPage() {
-    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-    
-    if (!token) {
-        window.location.href = '/pages/auth/login.html';
-        return false;
-    }
-    return true;
-}
-
-function getAuthToken() {
-    return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-}
-
-// Protect this page on load
+// Protect page using auth.js function
 if (!protectPage()) {
-    throw new Error('Not authenticated');
+    console.log(' Access denied - redirecting to login');
 }
+
+const API_URL = `${API_CONFIG.BASE_URL}/api`;
 
 // Show alert function
 function showAlert(message, type = 'danger') {
@@ -363,13 +349,7 @@ function showAlert(message, type = 'danger') {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     alertContainer.appendChild(alert);
-    
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        alert.remove();
-    }, 5000);
-
-    // Scroll to top to show alert
+    setTimeout(() => alert.remove(), 5000);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -380,27 +360,22 @@ document.getElementById('add-property-form').addEventListener('submit', async (e
     const submitBtn = document.getElementById('submitBtn');
     const originalBtnText = submitBtn.innerHTML;
     
-    // Disable button and show loading state
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
     
     try {
         const formData = new FormData(e.target);
         
-        // Build location string from separate fields
         const streetAddress = formData.get('street_address')?.trim() || '';
         const city = formData.get('city')?.trim() || '';
         const county = formData.get('county')?.trim() || '';
         const postalCode = formData.get('postal_code')?.trim() || '';
         
-        // Combine location fields - only include non-empty parts
         const locationParts = [streetAddress, city, county, postalCode].filter(part => part !== '');
         const location = locationParts.join(', ');
         
-        // Get amenities as array
         const amenities = formData.getAll('amenities');
         
-        // Build property object
         const propertyData = {
             property_name: formData.get('property_name'),
             location: location,
@@ -418,16 +393,13 @@ document.getElementById('add-property-form').addEventListener('submit', async (e
             amenities: amenities.length > 0 ? amenities.join(', ') : null
         };
         
-        console.log('Submitting Property Data:', propertyData);
+        console.log('Submitting:', propertyData);
         
-        // Submit to backend API
         const token = getToken();
         
         if (!token) {
-            showAlert('Not authenticated. Please log in.', 'danger');
-            setTimeout(() => {
-                window.location.href = '/pages/auth/login.html';
-            }, 1500);
+            showAlert(' Not authenticated. Redirecting to login...', 'warning');
+            setTimeout(() => location.href = '/pages/auth/login.html', 1500);
             return;
         }
         
@@ -443,23 +415,16 @@ document.getElementById('add-property-form').addEventListener('submit', async (e
         const result = await response.json();
         
         if (response.ok) {
-            showAlert('Property added successfully!', 'success');
-            
-            // Clear form
+            showAlert(' Property added successfully!', 'success');
             e.target.reset();
-            
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                window.location.href = '/pages/properties/list.html';
-            }, 2000);
+            setTimeout(() => location.href = '/pages/properties/list.html', 2000);
         } else {
             throw new Error(result.error || result.message || 'Failed to add property');
         }
     } catch (error) {
-        console.error('Error:', error);
-        showAlert('❌ Error: ' + error.message, 'danger');
+        console.error(' Error:', error);
+        showAlert(' ' + error.message, 'danger');
     } finally {
-        // Re-enable button
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
     }
