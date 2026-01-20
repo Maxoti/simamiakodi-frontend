@@ -447,394 +447,554 @@
             </div>
         </div>
     </div>
+  <!-- Add these script imports before your custom script -->
 <script src="../../js/config.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="../../js/auth.js"></script>
-  <script>
-    const API_URL = `${API_CONFIG.BASE_URL}/api`;
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/auth.js"></script>
 
-let allPayments = [];
-let filteredPayments = [];
-let properties = {};
-let deleteModal;
-let paymentToDelete = null;
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    // Protect page first
+<script>
+    // Protect page using auth.js
     if (!protectPage()) {
-        return;
+        console.log('❌ Access denied');
     }
-    
-    deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    loadProperties();
-    setupEventListeners();
-});
 
-// Setup event listeners
-function setupEventListeners() {
-    document.getElementById('searchInput').addEventListener('input', filterPayments);
-    document.getElementById('propertyFilter').addEventListener('change', filterPayments);
-    document.getElementById('methodFilter').addEventListener('change', filterPayments);
-    document.getElementById('monthFilter').addEventListener('change', filterPayments);
-    document.getElementById('sortSelect').addEventListener('change', sortAndDisplayPayments);
-    document.getElementById('clearFilters').addEventListener('click', clearFilters);
-    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
-}
+    let allPayments = [];
+    let filteredPayments = [];
+    let properties = {};
+    let deleteModal;
+    let paymentToDelete = null;
 
-// Load properties for filter
-async function loadProperties() {
-    try {
-        const token = getAuthToken();
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📄 Page loaded, initializing payments...');
         
-        const response = await fetch(`${API_URL}/properties`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) return;
-
-        const result = await response.json();
-        const propertiesArray = result.data || [];
-
-        // Create property lookup map
-        propertiesArray.forEach(prop => {
-            properties[prop.property_id] = prop.property_name;
-        });
-
-        // Populate filter dropdown
-        const select = document.getElementById('propertyFilter');
-        propertiesArray.forEach(property => {
-            const option = document.createElement('option');
-            option.value = property.property_id;
-            option.textContent = property.property_name;
-            select.appendChild(option);
-        });
-
-        // After properties are loaded, load payments
-        loadPayments();
-    } catch (error) {
-        console.error('Error loading properties:', error);
-        loadPayments(); // Load payments anyway even if properties fail
-    }
-}
-
-// Load payments from API
-async function loadPayments() {
-    try {
-        const token = getAuthToken();
-        
-        const response = await fetch(`${API_URL}/payments`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) throw new Error('Failed to load payments');
-
-        const result = await response.json();
-        allPayments = result.data || [];
-        
-        // Add property names to payments
-        allPayments = allPayments.map(payment => ({
-            ...payment,
-            property_name: properties[payment.property_id] || 'Unknown Property'
-        }));
-        
-        filteredPayments = [...allPayments];
-        
-        updateStats();
-        sortAndDisplayPayments();
-        
-        document.getElementById('loadingState').style.display = 'none';
-    } catch (error) {
-        console.error('Error loading payments:', error);
-        document.getElementById('loadingState').innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                Failed to load payments. Please refresh the page.
-            </div>
-        `;
-    }
-}
-
-// Update statistics
-function updateStats() {
-    const total = allPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-    
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const monthlyTotal = allPayments
-        .filter(p => p.payment_month === currentMonth || 
-                   (p.payment_date && p.payment_date.startsWith(currentMonth)))
-        .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-    
-    const count = allPayments.length;
-    
-    const mpesaCount = allPayments.filter(p => 
-        p.payment_method && p.payment_method.toLowerCase().includes('mpesa')
-    ).length;
-    const mpesaPercentage = count > 0 ? Math.round((mpesaCount / count) * 100) : 0;
-
-    document.getElementById('totalPayments').textContent = `KES ${formatMoney(total)}`;
-    document.getElementById('monthlyPayments').textContent = `KES ${formatMoney(monthlyTotal)}`;
-    document.getElementById('paymentCount').textContent = count;
-    document.getElementById('mpesaPercentage').textContent = mpesaPercentage + '%';
-}
-
-// Filter payments
-function filterPayments() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const propertyId = document.getElementById('propertyFilter').value;
-    const method = document.getElementById('methodFilter').value;
-    const month = document.getElementById('monthFilter').value;
-
-    filteredPayments = allPayments.filter(payment => {
-        const matchesSearch = !searchTerm || 
-            (payment.tenant_name && payment.tenant_name.toLowerCase().includes(searchTerm)) ||
-            (payment.mpesa_code && payment.mpesa_code.toLowerCase().includes(searchTerm)) ||
-            (payment.reference_number && payment.reference_number.toLowerCase().includes(searchTerm)) ||
-            (payment.unit_number && payment.unit_number.toLowerCase().includes(searchTerm));
-
-        const matchesProperty = !propertyId || payment.property_id == propertyId;
-        const matchesMethod = !method || payment.payment_method === method;
-        const matchesMonth = !month || 
-            payment.payment_month === month || 
-            (payment.payment_date && payment.payment_date.startsWith(month));
-
-        return matchesSearch && matchesProperty && matchesMethod && matchesMonth;
-    });
-
-    sortAndDisplayPayments();
-}
-
-// Sort and display payments
-function sortAndDisplayPayments() {
-    const sortBy = document.getElementById('sortSelect').value;
-
-    filteredPayments.sort((a, b) => {
-        switch(sortBy) {
-            case 'date_desc':
-                return new Date(b.payment_date) - new Date(a.payment_date);
-            case 'date_asc':
-                return new Date(a.payment_date) - new Date(b.payment_date);
-            case 'amount_high':
-                return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
-            case 'amount_low':
-                return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
-            case 'tenant':
-                return (a.tenant_name || '').localeCompare(b.tenant_name || '');
-            default:
-                return 0;
+        const modalElement = document.getElementById('deleteModal');
+        if (modalElement) {
+            deleteModal = new bootstrap.Modal(modalElement);
         }
+        
+        loadProperties();
+        setupEventListeners();
     });
 
-    displayPayments();
-}
+    // Setup event listeners
+    function setupEventListeners() {
+        const searchInput = document.getElementById('searchInput');
+        const propertyFilter = document.getElementById('propertyFilter');
+        const methodFilter = document.getElementById('methodFilter');
+        const monthFilter = document.getElementById('monthFilter');
+        const sortSelect = document.getElementById('sortSelect');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-// Display payments
-function displayPayments() {
-    const container = document.getElementById('paymentsList');
-    const emptyState = document.getElementById('emptyState');
-
-    const totalAmount = filteredPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-    document.getElementById('resultsInfo').textContent = 
-        `Showing ${filteredPayments.length} of ${allPayments.length} payments (Total: KES ${formatMoney(totalAmount)})`;
-
-    if (filteredPayments.length === 0) {
-        container.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
+        if (searchInput) searchInput.addEventListener('input', filterPayments);
+        if (propertyFilter) propertyFilter.addEventListener('change', filterPayments);
+        if (methodFilter) methodFilter.addEventListener('change', filterPayments);
+        if (monthFilter) monthFilter.addEventListener('change', filterPayments);
+        if (sortSelect) sortSelect.addEventListener('change', sortAndDisplayPayments);
+        if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+        if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
     }
 
-    emptyState.style.display = 'none';
-    
-    container.innerHTML = filteredPayments.map(payment => {
-        const methodClass = getMethodClass(payment.payment_method);
-        
-        return `
-            <div class="payment-card">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div class="payment-amount">KES ${formatMoney(payment.amount)}</div>
-                            <span class="payment-method-badge ${methodClass}">
-                                ${payment.payment_method || 'N/A'}
-                            </span>
-                            ${payment.payment_month ? `
-                            <span class="month-badge">
-                                <i class="fas fa-calendar-alt me-1"></i>${formatMonth(payment.payment_month)}
-                            </span>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="payment-tenant">${payment.tenant_name || 'Unknown Tenant'}</div>
-                        
-                        <div class="payment-details">
-                            <div class="detail-item">
-                                <i class="fas fa-building"></i>
-                                <span>${payment.property_name || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-door-open"></i>
-                                <span>Unit ${payment.unit_number || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>${formatDate(payment.payment_date)}</span>
-                            </div>
-                            ${payment.mpesa_code ? `
-                            <div class="detail-item">
-                                <i class="fas fa-mobile-alt"></i>
-                                <span class="mpesa-code">${payment.mpesa_code}</span>
-                            </div>
-                            ` : ''}
-                            ${payment.reference_number ? `
-                            <div class="detail-item">
-                                <i class="fas fa-hashtag"></i>
-                                <span>${payment.reference_number}</span>
-                            </div>
-                            ` : ''}
-                        </div>
-                        
-                        ${payment.notes ? `
-                        <div class="mt-2">
-                            <small class="text-muted">
-                                <i class="fas fa-sticky-note me-1"></i>${payment.notes}
-                            </small>
-                        </div>
-                        ` : ''}
-                    </div>
+    // Load properties for filter
+    async function loadProperties() {
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
+            
+            if (!token) {
+                console.log('❌ No token found, redirecting to login');
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            console.log('📡 Fetching properties from:', API_CONFIG.BASE_URL + '/api/properties');
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('✅ Response status:', response.status);
+
+            if (response.status === 401) {
+                console.log('❌ Unauthorized - clearing storage and redirecting');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            if (!response.ok) {
+                console.warn('⚠️ Failed to load properties, continuing anyway');
+                loadPayments();
+                return;
+            }
+
+            const result = await response.json();
+            console.log('✅ Properties response:', result);
+            
+            const propertiesArray = result.data || result.properties || result || [];
+
+            // Create property lookup map
+            propertiesArray.forEach(prop => {
+                const propertyId = prop.property_id || prop.id;
+                const propertyName = prop.property_name || prop.name || 'Unknown Property';
+                properties[propertyId] = propertyName;
+            });
+
+            // Populate filter dropdown
+            const select = document.getElementById('propertyFilter');
+            if (select) {
+                // Clear existing options except the first one
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                
+                propertiesArray.forEach(property => {
+                    const propertyId = property.property_id || property.id;
+                    const propertyName = property.property_name || property.name || 'Unknown Property';
                     
-                    <div class="action-buttons">
-                        <button class="btn-action btn-view" onclick="viewPayment(${payment.payment_id})" 
-                                title="View Details">
-                            <i class="fas fa-eye"></i>
+                    const option = document.createElement('option');
+                    option.value = propertyId;
+                    option.textContent = propertyName;
+                    select.appendChild(option);
+                });
+            }
+
+            // After properties are loaded, load payments
+            loadPayments();
+        } catch (error) {
+            console.error('❌ Error loading properties:', error);
+            loadPayments(); // Load payments anyway even if properties fail
+        }
+    }
+
+    // Load payments from API
+    async function loadPayments() {
+        const loadingState = document.getElementById('loadingState');
+        
+        if (loadingState) {
+            loadingState.style.display = 'block';
+        }
+
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
+            
+            if (!token) {
+                console.log('❌ No token found, redirecting to login');
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            console.log('📡 Fetching payments from:', API_CONFIG.BASE_URL + '/api/payments');
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/payments`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('✅ Response status:', response.status);
+
+            if (response.status === 401) {
+                console.log('❌ Unauthorized - clearing storage and redirecting');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Payments response:', result);
+            
+            allPayments = result.data || result.payments || result || [];
+            
+            // Add property names to payments
+            allPayments = allPayments.map(payment => ({
+                ...payment,
+                property_name: properties[payment.property_id] || 'Unknown Property'
+            }));
+            
+            filteredPayments = [...allPayments];
+            
+            updateStats();
+            sortAndDisplayPayments();
+            
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('❌ Error loading payments:', error);
+            if (loadingState) {
+                loadingState.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Failed to load payments: ${error.message}. Please refresh the page.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // Update statistics
+    function updateStats() {
+        const total = allPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const monthlyTotal = allPayments
+            .filter(p => p.payment_month === currentMonth || 
+                       (p.payment_date && p.payment_date.startsWith(currentMonth)))
+            .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        
+        const count = allPayments.length;
+        
+        const mpesaCount = allPayments.filter(p => 
+            p.payment_method && p.payment_method.toLowerCase().includes('mpesa')
+        ).length;
+        const mpesaPercentage = count > 0 ? Math.round((mpesaCount / count) * 100) : 0;
+
+        const totalPaymentsEl = document.getElementById('totalPayments');
+        const monthlyPaymentsEl = document.getElementById('monthlyPayments');
+        const paymentCountEl = document.getElementById('paymentCount');
+        const mpesaPercentageEl = document.getElementById('mpesaPercentage');
+
+        if (totalPaymentsEl) totalPaymentsEl.textContent = `KES ${formatMoney(total)}`;
+        if (monthlyPaymentsEl) monthlyPaymentsEl.textContent = `KES ${formatMoney(monthlyTotal)}`;
+        if (paymentCountEl) paymentCountEl.textContent = count;
+        if (mpesaPercentageEl) mpesaPercentageEl.textContent = mpesaPercentage + '%';
+    }
+
+    // Filter payments
+    function filterPayments() {
+        const searchInput = document.getElementById('searchInput');
+        const propertyFilter = document.getElementById('propertyFilter');
+        const methodFilter = document.getElementById('methodFilter');
+        const monthFilter = document.getElementById('monthFilter');
+
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const propertyId = propertyFilter ? propertyFilter.value : '';
+        const method = methodFilter ? methodFilter.value : '';
+        const month = monthFilter ? monthFilter.value : '';
+
+        console.log('🔍 Applying filters:', { searchTerm, propertyId, method, month });
+
+        filteredPayments = allPayments.filter(payment => {
+            const matchesSearch = !searchTerm || 
+                (payment.tenant_name && payment.tenant_name.toLowerCase().includes(searchTerm)) ||
+                (payment.mpesa_code && payment.mpesa_code.toLowerCase().includes(searchTerm)) ||
+                (payment.reference_number && payment.reference_number.toLowerCase().includes(searchTerm)) ||
+                (payment.unit_number && payment.unit_number.toLowerCase().includes(searchTerm));
+
+            const matchesProperty = !propertyId || payment.property_id == propertyId;
+            const matchesMethod = !method || payment.payment_method === method;
+            const matchesMonth = !month || 
+                payment.payment_month === month || 
+                (payment.payment_date && payment.payment_date.startsWith(month));
+
+            return matchesSearch && matchesProperty && matchesMethod && matchesMonth;
+        });
+
+        sortAndDisplayPayments();
+    }
+
+    // Sort and display payments
+    function sortAndDisplayPayments() {
+        const sortSelect = document.getElementById('sortSelect');
+        const sortBy = sortSelect ? sortSelect.value : 'date_desc';
+
+        filteredPayments.sort((a, b) => {
+            switch(sortBy) {
+                case 'date_desc':
+                    return new Date(b.payment_date || 0) - new Date(a.payment_date || 0);
+                case 'date_asc':
+                    return new Date(a.payment_date || 0) - new Date(b.payment_date || 0);
+                case 'amount_high':
+                    return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
+                case 'amount_low':
+                    return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
+                case 'tenant':
+                    return (a.tenant_name || '').localeCompare(b.tenant_name || '');
+                default:
+                    return 0;
+            }
+        });
+
+        displayPayments();
+    }
+
+    // Display payments
+    function displayPayments() {
+        const container = document.getElementById('paymentsList');
+        const emptyState = document.getElementById('emptyState');
+        const resultsInfo = document.getElementById('resultsInfo');
+
+        if (!container) {
+            console.error(' paymentsList container not found');
+            return;
+        }
+
+        const totalAmount = filteredPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        
+        if (resultsInfo) {
+            resultsInfo.textContent = `Showing ${filteredPayments.length} of ${allPayments.length} payments (Total: KES ${formatMoney(totalAmount)})`;
+        }
+
+        if (filteredPayments.length === 0) {
+            container.innerHTML = '';
+            if (emptyState) {
+                emptyState.style.display = 'block';
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-receipt text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                        <h3 class="mt-3">No Payments Found</h3>
+                        <p class="text-muted">Try adjusting your filters or record a new payment</p>
+                        <button class="btn btn-success" onclick="window.location.href='add.html'">
+                            <i class="fas fa-plus me-2"></i>Record Payment
                         </button>
-                        <button class="btn-action btn-delete" onclick="deletePayment(${payment.payment_id}, '${payment.tenant_name}', ${payment.amount})" 
-                                title="Delete Payment">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        if (emptyState) emptyState.style.display = 'none';
+        
+        console.log(`Displaying ${filteredPayments.length} payments`);
+        
+        container.innerHTML = filteredPayments.map(payment => {
+            const methodClass = getMethodClass(payment.payment_method);
+            const paymentId = payment.payment_id || payment.id;
+            
+            return `
+                <div class="payment-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="payment-amount">KES ${formatMoney(payment.amount)}</div>
+                                <span class="payment-method-badge ${methodClass}">
+                                    ${payment.payment_method || 'N/A'}
+                                </span>
+                                ${payment.payment_month ? `
+                                <span class="month-badge">
+                                    <i class="fas fa-calendar-alt me-1"></i>${formatMonth(payment.payment_month)}
+                                </span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="payment-tenant">${payment.tenant_name || 'Unknown Tenant'}</div>
+                            
+                            <div class="payment-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-building"></i>
+                                    <span>${payment.property_name || 'N/A'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-door-open"></i>
+                                    <span>Unit ${payment.unit_number || 'N/A'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>${formatDate(payment.payment_date)}</span>
+                                </div>
+                                ${payment.mpesa_code ? `
+                                <div class="detail-item">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span class="mpesa-code">${payment.mpesa_code}</span>
+                                </div>
+                                ` : ''}
+                                ${payment.reference_number ? `
+                                <div class="detail-item">
+                                    <i class="fas fa-hashtag"></i>
+                                    <span>${payment.reference_number}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            ${payment.notes ? `
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-sticky-note me-1"></i>${payment.notes}
+                                </small>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" onclick="viewPayment(${paymentId})" 
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deletePayment(${paymentId}, '${(payment.tenant_name || '').replace(/'/g, "&apos;")}', ${payment.amount})" 
+                                    title="Delete Payment">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// Get payment method CSS class
-function getMethodClass(method) {
-    if (!method) return 'method-other';
-    const lower = method.toLowerCase();
-    if (lower.includes('mpesa') || lower.includes('m-pesa')) return 'method-mpesa';
-    if (lower.includes('cash')) return 'method-cash';
-    if (lower.includes('bank')) return 'method-bank';
-    return 'method-other';
-}
-
-// Format money
-function formatMoney(amount) {
-    if (!amount) return '0.00';
-    return parseFloat(amount).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-
-// Format date
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-    });
-}
-
-// Format month
-function formatMonth(monthString) {
-    if (!monthString) return 'N/A';
-    const [year, month] = monthString.split('-');
-    const date = new Date(year, parseInt(month) - 1);
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short'
-    });
-}
-
-// Clear filters
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('propertyFilter').value = '';
-    document.getElementById('methodFilter').value = '';
-    document.getElementById('monthFilter').value = '';
-    document.getElementById('sortSelect').value = 'date_desc';
-    filterPayments();
-}
-
-// View payment details
-function viewPayment(id) {
-    window.location.href = `details.html?id=${id}`;
-}
-
-// Delete payment
-function deletePayment(id, tenantName, amount) {
-    paymentToDelete = id;
-    document.getElementById('deletePaymentInfo').textContent = 
-        `${tenantName} - KES ${formatMoney(amount)}`;
-    deleteModal.show();
-}
-
-// Confirm delete
-async function confirmDelete() {
-    if (!paymentToDelete) return;
-
-    const btn = document.getElementById('confirmDeleteBtn');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
-
-    try {
-        const token = getAuthToken();
-        
-        const response = await fetch(`${API_URL}/payments/${paymentToDelete}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            deleteModal.hide();
-            await loadPayments();
-            
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success alert-dismissible fade show';
-            alert.innerHTML = `
-                ✅ Payment deleted successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
-            
-            setTimeout(() => alert.remove(), 3000);
-        } else {
-            throw new Error('Failed to delete payment');
-        }
-    } catch (error) {
-        console.error('Error deleting payment:', error);
-        alert('Failed to delete payment. Please try again.');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        paymentToDelete = null;
+        }).join('');
     }
 
-}
-  </script>
+    // Get payment method CSS class
+    function getMethodClass(method) {
+        if (!method) return 'method-other';
+        const lower = method.toLowerCase();
+        if (lower.includes('mpesa') || lower.includes('m-pesa')) return 'method-mpesa';
+        if (lower.includes('cash')) return 'method-cash';
+        if (lower.includes('bank')) return 'method-bank';
+        return 'method-other';
+    }
+
+    // Format money
+    function formatMoney(amount) {
+        if (!amount) return '0.00';
+        return parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Format date
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
+
+    // Format month
+    function formatMonth(monthString) {
+        if (!monthString) return 'N/A';
+        const [year, month] = monthString.split('-');
+        const date = new Date(year, parseInt(month) - 1);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short'
+        });
+    }
+
+    // Clear filters
+    function clearFilters() {
+        const searchInput = document.getElementById('searchInput');
+        const propertyFilter = document.getElementById('propertyFilter');
+        const methodFilter = document.getElementById('methodFilter');
+        const monthFilter = document.getElementById('monthFilter');
+        const sortSelect = document.getElementById('sortSelect');
+
+        if (searchInput) searchInput.value = '';
+        if (propertyFilter) propertyFilter.value = '';
+        if (methodFilter) methodFilter.value = '';
+        if (monthFilter) monthFilter.value = '';
+        if (sortSelect) sortSelect.value = 'date_desc';
+        
+        console.log('🔄 Filters cleared');
+        filterPayments();
+    }
+
+    // View payment details
+    function viewPayment(id) {
+        console.log(' Viewing payment:', id);
+        window.location.href = `details.html?id=${id}`;
+    }
+
+    // Delete payment
+    function deletePayment(id, tenantName, amount) {
+        console.log('🗑️ Delete requested for payment:', id, tenantName, amount);
+        paymentToDelete = id;
+        
+        const deletePaymentInfo = document.getElementById('deletePaymentInfo');
+        if (deletePaymentInfo) {
+            deletePaymentInfo.textContent = `${tenantName} - KES ${formatMoney(amount)}`;
+        }
+        
+        if (deleteModal) {
+            deleteModal.show();
+        }
+    }
+
+    // Confirm delete
+    async function confirmDelete() {
+        if (!paymentToDelete) return;
+
+        const btn = document.getElementById('confirmDeleteBtn');
+        if (!btn) return;
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
+            
+            console.log('Deleting payment:', paymentToDelete);
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/payments/${paymentToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 401) {
+                console.log(' Unauthorized - redirecting to login');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            if (response.ok) {
+                if (deleteModal) deleteModal.hide();
+                
+                console.log('Payment deleted successfully');
+                
+                await loadPayments();
+                
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                     Payment deleted successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                const container = document.querySelector('.container');
+                if (container) {
+                    const row = container.querySelector('.row');
+                    if (row) {
+                        container.insertBefore(alert, row);
+                    } else {
+                        container.insertBefore(alert, container.firstChild);
+                    }
+                }
+                
+                setTimeout(() => alert.remove(), 3000);
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error(' Error deleting payment:', error);
+            alert('Failed to delete payment: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            paymentToDelete = null;
+        }
+    }
+</script>
 </body>
 </html>
