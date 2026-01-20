@@ -11,269 +11,367 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
-    <style>
-        body {
-            background: #f8f9fa;
-        }
+   <style>
+    body {
+        background: #f8f9fa;
+    }
 
-        .page-header {
-            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
-            color: white;
-            padding: 30px 0;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+    .page-header {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        color: white;
+        padding: 30px 0;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
 
-        .stats-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-            height: 100%;
-        }
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.3s;
+        height: 100%;
+        margin-bottom: 15px;
+    }
 
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
 
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
 
-        .stats-number {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 10px 0 5px 0;
-            color: #198754;
-        }
+    .stats-number {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 10px 0 5px 0;
+        color: #198754;
+    }
 
-        .stats-label {
-            color: #6c757d;
-            font-size: 14px;
-            font-weight: 500;
-        }
+    .stats-label {
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+    }
 
+    .content-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+
+    .search-filter-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+    }
+
+    .payment-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-left: 4px solid #198754;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+        overflow: visible;
+    }
+
+    .payment-card:hover {
+        border-color: #198754;
+        box-shadow: 0 5px 20px rgba(25, 135, 84, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .payment-amount {
+        font-size: 24px;
+        font-weight: 700;
+        color: #198754;
+    }
+
+    .payment-date {
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .payment-tenant {
+        font-size: 16px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 5px;
+        word-wrap: break-word;
+    }
+
+    .payment-details {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .detail-item i {
+        color: #198754;
+        flex-shrink: 0;
+    }
+
+    .detail-item span {
+        word-break: break-word;
+    }
+
+    .payment-method-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .method-mpesa {
+        background: #d1f4e0;
+        color: #0f6938;
+    }
+
+    .method-cash {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .method-bank {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .method-other {
+        background: #e2e3e5;
+        color: #41464b;
+    }
+
+    .mpesa-code {
+        background: #f8f9fa;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: #198754;
+        font-size: 13px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        flex-shrink: 0;
+    }
+
+    .btn-view {
+        background: #e7f3ff;
+        color: #0066cc;
+    }
+
+    .btn-view:hover {
+        background: #0066cc;
+        color: white;
+    }
+
+    .btn-edit {
+        background: #fff4e5;
+        color: #ff8c00;
+    }
+
+    .btn-edit:hover {
+        background: #ff8c00;
+        color: white;
+    }
+
+    .btn-delete {
+        background: #ffe5e5;
+        color: #dc3545;
+    }
+
+    .btn-delete:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 80px;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 60px;
+    }
+
+    .back-button {
+        color: white;
+        text-decoration: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.2);
+        transition: all 0.3s;
+    }
+
+    .back-button:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+
+    .month-badge {
+        background: #e7f3ff;
+        color: #0066cc;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Mobile Responsive Improvements */
+    @media (max-width: 768px) {
         .content-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            padding: 30px;
+            padding: 20px 15px;
         }
 
         .search-filter-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
+            padding: 15px;
         }
 
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .btn-primary-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
-        }
-
-        .payment-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-left: 4px solid #198754;
-            border-radius: 12px;
-            padding: 20px;
+        .stats-card {
             margin-bottom: 15px;
-            transition: all 0.3s;
         }
 
-        .payment-card:hover {
-            border-color: #198754;
-            box-shadow: 0 5px 20px rgba(25, 135, 84, 0.15);
-            transform: translateY(-2px);
+        /* Payment Card Mobile Layout */
+        .payment-card {
+            padding: 15px;
+        }
+
+        .payment-card > div {
+            flex-direction: column !important;
+            gap: 15px;
+        }
+
+        .payment-card .d-flex.justify-content-between {
+            flex-direction: column !important;
+        }
+
+        .payment-card .flex-grow-1 {
+            width: 100%;
         }
 
         .payment-amount {
-            font-size: 24px;
-            font-weight: 700;
-            color: #198754;
-        }
-
-        .payment-date {
-            color: #6c757d;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .payment-tenant {
-            font-size: 16px;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 5px;
+            font-size: 20px;
         }
 
         .payment-details {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 10px;
+            gap: 10px;
+            flex-direction: column;
         }
 
         .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #6c757d;
+            font-size: 13px;
+        }
+
+        /* Action buttons in row on mobile */
+        .action-buttons {
+            flex-direction: row !important;
+            justify-content: flex-start;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-action {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Badge adjustments */
+        .payment-method-badge,
+        .month-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+        }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 480px) {
+        .payment-card {
+            padding: 12px;
+        }
+
+        .payment-amount {
+            font-size: 18px;
+        }
+
+        .payment-tenant {
             font-size: 14px;
         }
 
-        .detail-item i {
-            color: #198754;
-        }
-
-        .payment-method-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
+        .detail-item {
             font-size: 12px;
-            font-weight: 600;
-        }
-
-        .method-mpesa {
-            background: #d1f4e0;
-            color: #0f6938;
-        }
-
-        .method-cash {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .method-bank {
-            background: #cfe2ff;
-            color: #084298;
-        }
-
-        .method-other {
-            background: #e2e3e5;
-            color: #41464b;
-        }
-
-        .mpesa-code {
-            background: #f8f9fa;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            color: #198754;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
         }
 
         .btn-action {
             width: 36px;
             height: 36px;
-            border-radius: 8px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
         }
 
-        .btn-view {
-            background: #e7f3ff;
-            color: #0066cc;
+        .stats-number {
+            font-size: 24px;
         }
-
-        .btn-view:hover {
-            background: #0066cc;
-            color: white;
-        }
-
-        .btn-edit {
-            background: #fff4e5;
-            color: #ff8c00;
-        }
-
-        .btn-edit:hover {
-            background: #ff8c00;
-            color: white;
-        }
-
-        .btn-delete {
-            background: #ffe5e5;
-            color: #dc3545;
-        }
-
-        .btn-delete:hover {
-            background: #dc3545;
-            color: white;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .empty-state-icon {
-            font-size: 80px;
-            color: #dee2e6;
-            margin-bottom: 20px;
-        }
-
-        .loading-spinner {
-            text-align: center;
-            padding: 60px;
-        }
-
-        .back-button {
-            color: white;
-            text-decoration: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.2);
-            transition: all 0.3s;
-        }
-
-        .back-button:hover {
-            background: rgba(255,255,255,0.3);
-            color: white;
-        }
-
-        .month-badge {
-            background: #e7f3ff;
-            color: #0066cc;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-            .payment-card {
-                padding: 15px;
-            }
-
-            .payment-details {
-                gap: 10px;
-            }
-        }
-    </style>
+    }
+</style>
     <link rel="stylesheet" href="../../CSS/mobile-nav.css">
 </head>
 <body>
