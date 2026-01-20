@@ -467,303 +467,412 @@
             </div>
         </div>
     </div>
+<!-- Add these script imports before your custom script -->
+<script src="../../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/auth.js"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="../../js/auth.js"></script>
-    <script>
-        // Protect this pageprotectPage();
-
-const API_URL = `${API_CONFIG.BASE_URL}/api`;
-
-let currentTenant = null;
-
-// Load tenant details on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tenantId = urlParams.get('id');
-
-    if (!tenantId) {
-        showError();
-        return;
+<script>
+    // Protect page using auth.js
+    if (!protectPage()) {
+        console.log(' Access denied');
     }
 
-    loadTenantDetails(tenantId);
-});
+    let currentTenant = null;
 
-// Load tenant details from API
-async function loadTenantDetails(id) {
-    try {
-        const token = getAuthToken();
-        
-        const response = await fetch(`${API_URL}/tenants/${id}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+    // Load tenant details on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tenantId = urlParams.get('id');
 
-        if (!response.ok) {
-            throw new Error('Tenant not found');
+        if (!tenantId) {
+            showError();
+            return;
         }
 
-        const result = await response.json();
-        currentTenant = result.data;
-
-        displayTenantDetails(currentTenant);
-        
-        document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('tenantContent').style.display = 'block';
-    } catch (error) {
-        console.error('Error loading tenant:', error);
-        showError();
-    }
-}
-
-// Display tenant details
-function displayTenantDetails(tenant) {
-    // Header
-    const fullName = `${tenant.first_name} ${tenant.middle_name ? tenant.middle_name + ' ' : ''}${tenant.last_name}`;
-    document.getElementById('tenantName').textContent = fullName;
-    
-    // Avatar - first letter of first name
-    document.getElementById('tenantAvatar').textContent = tenant.first_name.charAt(0).toUpperCase();
-    
-    // Status badge
-    const statusBadge = document.getElementById('tenantStatus');
-    statusBadge.textContent = tenant.is_active ? 'Active' : 'Inactive';
-    statusBadge.className = `status-badge ${tenant.is_active ? 'active' : 'inactive'}`;
-
-    // Contact info
-    document.getElementById('tenantEmail').textContent = tenant.email || 'N/A';
-    document.getElementById('tenantPhone').textContent = tenant.phone || 'N/A';
-
-    // Unit Information
-    if (tenant.property_name) {
-        document.getElementById('propertyName').textContent = tenant.property_name;
-        document.getElementById('propertyLink').href = `../properties/details.html?id=${tenant.property_id}`;
-        document.getElementById('unitNumber').textContent = tenant.unit_number || 'N/A';
-        document.getElementById('unitLink').href = `../units/details.html?id=${tenant.unit_id}`;
-        document.getElementById('unitBedrooms').textContent = tenant.bedrooms || 'N/A';
-        document.getElementById('unitRent').textContent = `KES ${formatMoney(tenant.rent)}`;
-    }
-
-    // Statistics
-    document.getElementById('tenancyDuration').textContent = calculateTenancyDuration(tenant.lease_start_date);
-    document.getElementById('rentAmount').textContent = `KES ${formatMoney(tenant.rent_amount || tenant.rent)}`;
-    document.getElementById('securityDeposit').textContent = `KES ${formatMoney(tenant.security_deposit)}`;
-    document.getElementById('leaseStatus').textContent = getLeaseStatus(tenant.lease_start_date, tenant.lease_end_date);
-
-    // Personal Information
-    const personalInfo = document.getElementById('personalInfo');
-    personalInfo.innerHTML = `
-        <div class="info-row">
-            <div class="info-label">Tenant ID:</div>
-            <div class="info-value">#${tenant.tenant_id}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Full Name:</div>
-            <div class="info-value">${fullName}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Email:</div>
-            <div class="info-value">${tenant.email || 'N/A'}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Phone:</div>
-            <div class="info-value">${tenant.phone || 'N/A'}</div>
-        </div>
-        ${tenant.date_of_birth ? `
-        <div class="info-row">
-            <div class="info-label">Date of Birth:</div>
-            <div class="info-value">${formatDate(tenant.date_of_birth)}</div>
-        </div>
-        ` : ''}
-        ${tenant.id_number ? `
-        <div class="info-row">
-            <div class="info-label">ID/Passport:</div>
-            <div class="info-value">${tenant.id_number}</div>
-        </div>
-        ` : ''}
-        ${tenant.gender ? `
-        <div class="info-row">
-            <div class="info-label">Gender:</div>
-            <div class="info-value">${capitalizeFirst(tenant.gender)}</div>
-        </div>
-        ` : ''}
-    `;
-
-    // Lease Information
-    const leaseInfo = document.getElementById('leaseInfo');
-    leaseInfo.innerHTML = `
-        <div class="info-row">
-            <div class="info-label">Lease Start Date:</div>
-            <div class="info-value">${formatDate(tenant.lease_start_date)}</div>
-        </div>
-        ${tenant.lease_end_date ? `
-        <div class="info-row">
-            <div class="info-label">Lease End Date:</div>
-            <div class="info-value">${formatDate(tenant.lease_end_date)}</div>
-        </div>
-        ` : ''}
-        <div class="info-row">
-            <div class="info-label">Monthly Rent:</div>
-            <div class="info-value">KES ${formatMoney(tenant.rent_amount || tenant.rent)}</div>
-        </div>
-        ${tenant.security_deposit ? `
-        <div class="info-row">
-            <div class="info-label">Security Deposit:</div>
-            <div class="info-value">KES ${formatMoney(tenant.security_deposit)}</div>
-        </div>
-        ` : ''}
-    `;
-
-    // Emergency Contact
-    if (tenant.emergency_contact_name || tenant.emergency_contact_phone) {
-        document.getElementById('emergencySection').style.display = 'block';
-        document.getElementById('emergencyInfo').innerHTML = `
-            ${tenant.emergency_contact_name ? `
-            <div class="info-row">
-                <div class="info-label">Name:</div>
-                <div class="info-value">${tenant.emergency_contact_name}</div>
-            </div>
-            ` : ''}
-            ${tenant.emergency_contact_phone ? `
-            <div class="info-row">
-                <div class="info-label">Phone:</div>
-                <div class="info-value">${tenant.emergency_contact_phone}</div>
-            </div>
-            ` : ''}
-            ${tenant.emergency_contact_relationship ? `
-            <div class="info-row">
-                <div class="info-label">Relationship:</div>
-                <div class="info-value">${tenant.emergency_contact_relationship}</div>
-            </div>
-            ` : ''}
-        `;
-    }
-
-    // Additional Information
-    if (tenant.occupation || tenant.notes) {
-        document.getElementById('additionalSection').style.display = 'block';
-        document.getElementById('additionalInfo').innerHTML = `
-            ${tenant.occupation ? `
-            <div class="info-row">
-                <div class="info-label">Occupation:</div>
-                <div class="info-value">${tenant.occupation}</div>
-            </div>
-            ` : ''}
-            ${tenant.notes ? `
-            <div class="info-row">
-                <div class="info-label">Notes:</div>
-                <div class="info-value">${tenant.notes}</div>
-            </div>
-            ` : ''}
-        `;
-    }
-
-    // Setup buttons
-    document.getElementById('editBtn').onclick = () => editTenant(tenant.tenant_id);
-    document.getElementById('deleteBtn').onclick = () => deleteTenant(tenant.tenant_id, fullName);
-}
-
-// Calculate tenancy duration in months
-function calculateTenancyDuration(startDate) {
-    if (!startDate) return 0;
-    const start = new Date(startDate);
-    const now = new Date();
-    const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
-    return Math.max(0, months);
-}
-
-// Get lease status
-function getLeaseStatus(startDate, endDate) {
-    if (!startDate) return 'N/A';
-    const now = new Date();
-    const start = new Date(startDate);
-    
-    if (now < start) return 'Upcoming';
-    if (!endDate) return 'Active';
-    
-    const end = new Date(endDate);
-    if (now > end) return 'Expired';
-    return 'Active';
-}
-
-// Format money
-function formatMoney(amount) {
-    if (!amount) return '0.00';
-    return parseFloat(amount).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        loadTenantDetails(tenantId);
     });
-}
 
-// Format date
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    });
-}
-
-// Capitalize first letter
-function capitalizeFirst(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-// Edit tenant
-function editTenant(id) {
-    window.location.href = `edit.html?id=${id}`;
-}
-
-// Delete tenant
-function deleteTenant(id, name) {
-    document.getElementById('deleteTenantName').textContent = name;
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    modal.show();
-
-    document.getElementById('confirmDeleteBtn').onclick = async () => {
-        await confirmDelete(id);
-    };
-}
-
-// Confirm delete
-async function confirmDelete(id) {
-    try {
-        const token = getAuthToken();
-        
-        const response = await fetch(`${API_URL}/tenants/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
+    // Load tenant details from API
+    async function loadTenantDetails(id) {
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
+            
+            if (!token) {
+                console.log(' No token found, redirecting to login');
+                window.location.href = '/pages/auth/login.html';
+                return;
             }
+
+            console.log('📡 Fetching tenant from:', API_CONFIG.BASE_URL + '/api/tenants/' + id);
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/tenants/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log(' Response status:', response.status);
+
+            if (response.status === 401) {
+                console.log('❌ Unauthorized - clearing storage and redirecting');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Tenant not found');
+            }
+
+            const result = await response.json();
+            console.log(' Tenant data:', result);
+            
+            currentTenant = result.data || result.tenant || result;
+
+            displayTenantDetails(currentTenant);
+            
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tenantContent').style.display = 'block';
+        } catch (error) {
+            console.error(' Error loading tenant:', error);
+            showError();
+        }
+    }
+
+    // Display tenant details
+    function displayTenantDetails(tenant) {
+        // Header
+        const fullName = tenant.full_name || `${tenant.first_name || ''} ${tenant.middle_name ? tenant.middle_name + ' ' : ''}${tenant.last_name || ''}`.trim();
+        document.getElementById('tenantName').textContent = fullName || 'N/A';
+        
+        // Avatar - first letter of first name or full name
+        const avatarText = tenant.first_name ? tenant.first_name.charAt(0).toUpperCase() : 
+                          fullName ? fullName.charAt(0).toUpperCase() : '?';
+        document.getElementById('tenantAvatar').textContent = avatarText;
+        
+        // Status badge
+        const statusBadge = document.getElementById('tenantStatus');
+        statusBadge.textContent = tenant.is_active ? 'Active' : 'Inactive';
+        statusBadge.className = `status-badge ${tenant.is_active ? 'active' : 'inactive'}`;
+
+        // Contact info
+        document.getElementById('tenantEmail').textContent = tenant.email || 'N/A';
+        document.getElementById('tenantPhone').textContent = tenant.phone || 'N/A';
+
+        // Unit Information
+        if (tenant.property_name) {
+            document.getElementById('propertyName').textContent = tenant.property_name;
+            const propertyLink = document.getElementById('propertyLink');
+            if (propertyLink) {
+                propertyLink.href = `../properties/details.html?id=${tenant.property_id}`;
+            }
+            
+            document.getElementById('unitNumber').textContent = tenant.unit_number || 'N/A';
+            const unitLink = document.getElementById('unitLink');
+            if (unitLink) {
+                unitLink.href = `../units/details.html?id=${tenant.unit_id}`;
+            }
+            
+            const bedroomsEl = document.getElementById('unitBedrooms');
+            if (bedroomsEl) {
+                bedroomsEl.textContent = tenant.bedrooms || 'N/A';
+            }
+            
+            const unitRentEl = document.getElementById('unitRent');
+            if (unitRentEl) {
+                unitRentEl.textContent = `KES ${formatMoney(tenant.rent || tenant.rent_amount)}`;
+            }
+        }
+
+        // Statistics
+        const tenancyDurationEl = document.getElementById('tenancyDuration');
+        if (tenancyDurationEl) {
+            tenancyDurationEl.textContent = calculateTenancyDuration(tenant.lease_start_date || tenant.move_in_date);
+        }
+        
+        const rentAmountEl = document.getElementById('rentAmount');
+        if (rentAmountEl) {
+            rentAmountEl.textContent = `KES ${formatMoney(tenant.rent_amount || tenant.rent)}`;
+        }
+        
+        const securityDepositEl = document.getElementById('securityDeposit');
+        if (securityDepositEl) {
+            securityDepositEl.textContent = `KES ${formatMoney(tenant.security_deposit || tenant.deposit_amount)}`;
+        }
+        
+        const leaseStatusEl = document.getElementById('leaseStatus');
+        if (leaseStatusEl) {
+            leaseStatusEl.textContent = getLeaseStatus(tenant.lease_start_date || tenant.move_in_date, tenant.lease_end_date || tenant.move_out_date);
+        }
+
+        // Personal Information
+        const personalInfo = document.getElementById('personalInfo');
+        if (personalInfo) {
+            personalInfo.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">Tenant ID:</div>
+                    <div class="info-value">#${tenant.tenant_id || tenant.id}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Full Name:</div>
+                    <div class="info-value">${fullName}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">${tenant.email || 'N/A'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Phone:</div>
+                    <div class="info-value">${tenant.phone || 'N/A'}</div>
+                </div>
+                ${tenant.date_of_birth ? `
+                <div class="info-row">
+                    <div class="info-label">Date of Birth:</div>
+                    <div class="info-value">${formatDate(tenant.date_of_birth)}</div>
+                </div>
+                ` : ''}
+                ${tenant.id_number ? `
+                <div class="info-row">
+                    <div class="info-label">ID/Passport:</div>
+                    <div class="info-value">${tenant.id_number}</div>
+                </div>
+                ` : ''}
+                ${tenant.gender ? `
+                <div class="info-row">
+                    <div class="info-label">Gender:</div>
+                    <div class="info-value">${capitalizeFirst(tenant.gender)}</div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Lease Information
+        const leaseInfo = document.getElementById('leaseInfo');
+        if (leaseInfo) {
+            leaseInfo.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">Lease Start Date:</div>
+                    <div class="info-value">${formatDate(tenant.lease_start_date || tenant.move_in_date)}</div>
+                </div>
+                ${tenant.lease_end_date || tenant.move_out_date ? `
+                <div class="info-row">
+                    <div class="info-label">Lease End Date:</div>
+                    <div class="info-value">${formatDate(tenant.lease_end_date || tenant.move_out_date)}</div>
+                </div>
+                ` : ''}
+                <div class="info-row">
+                    <div class="info-label">Monthly Rent:</div>
+                    <div class="info-value">KES ${formatMoney(tenant.rent_amount || tenant.rent)}</div>
+                </div>
+                ${tenant.security_deposit || tenant.deposit_amount ? `
+                <div class="info-row">
+                    <div class="info-label">Security Deposit:</div>
+                    <div class="info-value">KES ${formatMoney(tenant.security_deposit || tenant.deposit_amount)}</div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Emergency Contact
+        const emergencySection = document.getElementById('emergencySection');
+        const emergencyInfo = document.getElementById('emergencyInfo');
+        
+        if (emergencySection && emergencyInfo && (tenant.emergency_contact_name || tenant.emergency_contact_phone)) {
+            emergencySection.style.display = 'block';
+            emergencyInfo.innerHTML = `
+                ${tenant.emergency_contact_name ? `
+                <div class="info-row">
+                    <div class="info-label">Name:</div>
+                    <div class="info-value">${tenant.emergency_contact_name}</div>
+                </div>
+                ` : ''}
+                ${tenant.emergency_contact_phone ? `
+                <div class="info-row">
+                    <div class="info-label">Phone:</div>
+                    <div class="info-value">${tenant.emergency_contact_phone}</div>
+                </div>
+                ` : ''}
+                ${tenant.emergency_contact_relationship ? `
+                <div class="info-row">
+                    <div class="info-label">Relationship:</div>
+                    <div class="info-value">${tenant.emergency_contact_relationship}</div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Additional Information
+        const additionalSection = document.getElementById('additionalSection');
+        const additionalInfo = document.getElementById('additionalInfo');
+        
+        if (additionalSection && additionalInfo && (tenant.occupation || tenant.notes)) {
+            additionalSection.style.display = 'block';
+            additionalInfo.innerHTML = `
+                ${tenant.occupation ? `
+                <div class="info-row">
+                    <div class="info-label">Occupation:</div>
+                    <div class="info-value">${tenant.occupation}</div>
+                </div>
+                ` : ''}
+                ${tenant.notes ? `
+                <div class="info-row">
+                    <div class="info-label">Notes:</div>
+                    <div class="info-value">${tenant.notes}</div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Setup buttons
+        const editBtn = document.getElementById('editBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        
+        if (editBtn) {
+            editBtn.onclick = () => editTenant(tenant.tenant_id || tenant.id);
+        }
+        
+        if (deleteBtn) {
+            deleteBtn.onclick = () => deleteTenant(tenant.tenant_id || tenant.id, fullName);
+        }
+    }
+
+    // Calculate tenancy duration in months
+    function calculateTenancyDuration(startDate) {
+        if (!startDate) return 0;
+        const start = new Date(startDate);
+        const now = new Date();
+        const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+        return Math.max(0, months);
+    }
+
+    // Get lease status
+    function getLeaseStatus(startDate, endDate) {
+        if (!startDate) return 'N/A';
+        const now = new Date();
+        const start = new Date(startDate);
+        
+        if (now < start) return 'Upcoming';
+        if (!endDate) return 'Active';
+        
+        const end = new Date(endDate);
+        if (now > end) return 'Expired';
+        return 'Active';
+    }
+
+    // Format money
+    function formatMoney(amount) {
+        if (!amount) return '0.00';
+        return parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         });
+    }
 
-        const result = await response.json();
+    // Format date
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
 
-        if (response.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-            alert('✅ Tenant deleted successfully!');
-            window.location.href = 'list.html';
+    // Capitalize first letter
+    function capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // Edit tenant
+    function editTenant(id) {
+        console.log(' Editing tenant:', id);
+        window.location.href = `edit.html?id=${id}`;
+    }
+
+    // Delete tenant
+    function deleteTenant(id, name) {
+        console.log(' Delete requested for tenant:', id, name);
+        
+        const deleteTenantName = document.getElementById('deleteTenantName');
+        if (deleteTenantName) {
+            deleteTenantName.textContent = name;
+        }
+        
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            const modal = new bootstrap.Modal(deleteModal);
+            modal.show();
+
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.onclick = async () => {
+                    await confirmDelete(id);
+                };
+            }
         } else {
-            alert('❌ Error: ' + (result.error || 'Failed to delete tenant'));
+            // Fallback if modal doesn't exist
+            if (confirm(`Are you sure you want to delete ${name}?`)) {
+                confirmDelete(id);
+            }
         }
-    } catch (error) {
-        console.error('Error deleting tenant:', error);
-        alert('❌ Failed to delete tenant. Please try again.');
     }
-}
 
-// Show error state
-function showError() {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('errorState').style.display = 'block';
-}
-    </script>
+    // Confirm delete
+    async function confirmDelete(id) {
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
+            
+            console.log('🗑️ Deleting tenant:', id);
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/tenants/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 401) {
+                console.log('❌ Unauthorized - redirecting to login');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                const deleteModal = document.getElementById('deleteModal');
+                if (deleteModal) {
+                    bootstrap.Modal.getInstance(deleteModal)?.hide();
+                }
+                
+                console.log('✅ Tenant deleted successfully');
+                alert('✅ Tenant deleted successfully!');
+                window.location.href = 'list.html';
+            } else {
+                throw new Error(result.error || result.message || 'Failed to delete tenant');
+            }
+        } catch (error) {
+            console.error(' Error deleting tenant:', error);
+            alert(' Failed to delete tenant: ' + error.message);
+        }
+    }
+
+    // Show error state
+    function showError() {
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        
+        if (loadingState) loadingState.style.display = 'none';
+        if (errorState) errorState.style.display = 'block';
+    }
+</script>
 </body>
 </html>
