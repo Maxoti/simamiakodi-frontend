@@ -437,342 +437,549 @@
             </div>
         </div>
     </div>
+<!-- Add these script imports before your custom script -->
+<script src="../../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/auth.js"></script>
+<!-- WhatsApp Integration -->
+<script src="../../js/WHATSAPP-SERVICE/whatsapp-service.js"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="../../js/auth.js"></script>
-    <!-- WhatsApp Integration -->
-<script src="../../js/WHATSAPP -SERVICE/whatsapp-service.js"></script>
 <script>
-
-     protectPage();
-
-const API_URL = `${API_CONFIG.BASE_URL}/api`;
-
-let allTenants = [];
-let filteredTenants = [];
-let deleteModal;
-let tenantToDelete = null;
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    loadProperties();
-    loadTenants();
-    setupEventListeners();
-});
-
-// Setup event listeners
-function setupEventListeners() {
-    document.getElementById('searchInput').addEventListener('input', filterTenants);
-    document.getElementById('propertyFilter').addEventListener('change', filterTenants);
-    document.getElementById('statusFilter').addEventListener('change', filterTenants);
-    document.getElementById('sortSelect').addEventListener('change', sortAndDisplayTenants);
-    document.getElementById('clearFilters').addEventListener('click', clearFilters);
-    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
-}
-
-// Load properties for filter
-async function loadProperties() {
-    try {
-        const token = getAuthToken();
-        
-        const response = await fetch(`${API_URL}/properties`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) return;
-
-        const result = await response.json();
-        const properties = result.data || [];
-
-        const select = document.getElementById('propertyFilter');
-        properties.forEach(property => {
-            const option = document.createElement('option');
-            option.value = property.property_id;
-            option.textContent = property.property_name;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading properties:', error);
+    // Protect page using auth.js
+    if (!protectPage()) {
+        console.log(' Access denied');
     }
-}
 
-// Load tenants from API
-async function loadTenants() {
-    try {
-        const token = getAuthToken();
-        
-        const response = await fetch(`${API_URL}/tenants`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) throw new Error('Failed to load tenants');
-
-        const result = await response.json();
-        allTenants = result.data || [];
-        filteredTenants = [...allTenants];
-        
-        updateStats();
-        sortAndDisplayTenants();
-        
-        document.getElementById('loadingState').style.display = 'none';
-    } catch (error) {
-        console.error('Error loading tenants:', error);
-        document.getElementById('loadingState').innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                Failed to load tenants. Please refresh the page.
-            </div>
-        `;
-    }
-}
-
-// Update statistics
-function updateStats() {
-    const total = allTenants.length;
-    const active = allTenants.filter(t => t.is_active).length;
-    const occupied = allTenants.filter(t => t.unit_id).length;
+    // Hamburger Menu Toggle
+    const hamburger = document.getElementById('hamburger');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
     
-    const now = new Date();
-    const thisMonth = allTenants.filter(t => {
-        const leaseDate = new Date(t.lease_start_date);
-        return leaseDate.getMonth() === now.getMonth() && 
-               leaseDate.getFullYear() === now.getFullYear();
-    }).length;
-
-    document.getElementById('totalTenants').textContent = total;
-    document.getElementById('activeTenants').textContent = active;
-    document.getElementById('occupiedUnits').textContent = occupied;
-    document.getElementById('newThisMonth').textContent = thisMonth;
-}
-
-// Filter tenants
-function filterTenants() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const propertyId = document.getElementById('propertyFilter').value;
-    const status = document.getElementById('statusFilter').value;
-
-    filteredTenants = allTenants.filter(tenant => {
-        const matchesSearch = !searchTerm || 
-            (tenant.full_name && tenant.full_name.toLowerCase().includes(searchTerm)) ||
-            (tenant.email && tenant.email.toLowerCase().includes(searchTerm)) ||
-            (tenant.phone && tenant.phone.toLowerCase().includes(searchTerm)) ||
-            (tenant.unit_number && tenant.unit_number.toLowerCase().includes(searchTerm));
-
-        const matchesProperty = !propertyId || tenant.property_id == propertyId;
-        const matchesStatus = !status || 
-            (status === 'active' && tenant.is_active) ||
-            (status === 'inactive' && !tenant.is_active);
-
-        return matchesSearch && matchesProperty && matchesStatus;
+    function toggleSidebar() {
+        if (hamburger) hamburger.classList.toggle('active');
+        if (sidebar) sidebar.classList.toggle('active');
+        if (overlay) overlay.classList.toggle('active');
+    }
+    
+    if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+    if (overlay) overlay.addEventListener('click', toggleSidebar);
+    
+    // Close sidebar when clicking a link on mobile
+    const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 992) {
+                toggleSidebar();
+            }
+        });
     });
 
-    sortAndDisplayTenants();
-}
+    let allTenants = [];
+    let filteredTenants = [];
+    let deleteModal;
+    let tenantToDelete = null;
 
-// Sort and display tenants
-function sortAndDisplayTenants() {
-    const sortBy = document.getElementById('sortSelect').value;
-
-    filteredTenants.sort((a, b) => {
-        switch(sortBy) {
-            case 'name_asc':
-                return (a.full_name || '').localeCompare(b.full_name || '');
-            case 'name_desc':
-                return (b.full_name || '').localeCompare(a.full_name || '');
-            case 'date_newest':
-                return new Date(b.move_in_date || 0) - new Date(a.move_in_date || 0);
-            case 'date_oldest':
-                return new Date(a.move_in_date || 0) - new Date(b.move_in_date || 0);
-            case 'rent_high':
-                return (b.rent_amount || 0) - (a.rent_amount || 0);
-            case 'rent_low':
-                return (a.rent_amount || 0) - (b.rent_amount || 0);
-            default:
-                return 0;
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📄 Page loaded, initializing tenants...');
+        
+        const modalElement = document.getElementById('deleteModal');
+        if (modalElement) {
+            deleteModal = new bootstrap.Modal(modalElement);
         }
+        
+        loadProperties();
+        loadTenants();
+        setupEventListeners();
     });
 
-    displayTenants();
-}
+    // Setup event listeners
+    function setupEventListeners() {
+        const searchInput = document.getElementById('searchInput');
+        const propertyFilter = document.getElementById('propertyFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const sortSelect = document.getElementById('sortSelect');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-// Display tenants
-function displayTenants() {
-    const container = document.getElementById('tenantsList');
-    const emptyState = document.getElementById('emptyState');
-
-    document.getElementById('resultsInfo').textContent = 
-        `Showing ${filteredTenants.length} of ${allTenants.length} tenants`;
-
-    if (filteredTenants.length === 0) {
-        container.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
+        if (searchInput) searchInput.addEventListener('input', filterTenants);
+        if (propertyFilter) propertyFilter.addEventListener('change', filterTenants);
+        if (statusFilter) statusFilter.addEventListener('change', filterTenants);
+        if (sortSelect) sortSelect.addEventListener('change', sortAndDisplayTenants);
+        if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+        if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
     }
 
-    emptyState.style.display = 'none';
-    
-    container.innerHTML = filteredTenants.map(tenant => `
-        <div class="tenant-card" onclick="viewTenant(${tenant.tenant_id})">
-            <div class="d-flex align-items-start justify-content-between">
-                <div class="d-flex align-items-start flex-grow-1">
-                    <div class="tenant-avatar">
-                        ${getInitials(tenant.full_name)}
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="tenant-name">${tenant.full_name || 'N/A'}</div>
-                        <div class="tenant-unit">
-                            <i class="fas fa-building me-1"></i>${tenant.property_name || 'No Property'} - 
-                            <i class="fas fa-door-open me-1"></i>${tenant.unit_number || 'No Unit'}
-                        </div>
-                        <div class="mt-2">
-                            <div class="tenant-info-item">
-                                <i class="fas fa-envelope"></i>
-                                <span>${tenant.email || 'N/A'}</span>
-                            </div>
-                            <div class="tenant-info-item">
-                                <i class="fas fa-phone"></i>
-                                <span>${tenant.phone || 'N/A'}</span>
-                            </div>
-                            <div class="tenant-info-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>Move-in: ${tenant.move_in_date ? new Date(tenant.move_in_date).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                            ${tenant.rent_balance && parseFloat(tenant.rent_balance) > 0 ? `
-                            <div class="tenant-info-item">
-                                <i class="fas fa-exclamation-triangle text-danger"></i>
-                                <span class="text-danger">Balance: KES ${formatMoney(tenant.rent_balance)}</span>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex flex-column align-items-end gap-2">
-                    <span class="status-badge ${tenant.is_active ? 'status-active' : 'status-inactive'}">
-                        ${tenant.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                    ${tenant.deposit_paid ? `
-                    <small class="text-muted">Deposit: KES ${formatMoney(tenant.deposit_paid)}</small>
-                    ` : ''}
-                    <div class="action-buttons" onclick="event.stopPropagation()">
-                        <button class="btn-action btn-whatsapp" 
-                                onclick='WhatsAppService.openModal(${JSON.stringify(tenant).replace(/'/g, "&apos;")})' 
-                                title="Send WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                        </button>
-                        <button class="btn-action btn-view" onclick="viewTenant(${tenant.tenant_id})" 
-                                title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-action btn-edit" onclick="editTenant(${tenant.tenant_id})" 
-                                title="Edit Tenant">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-action btn-delete" onclick="deleteTenant(${tenant.tenant_id}, '${tenant.full_name}')" 
-                                title="Delete Tenant">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Get initials from name
-function getInitials(fullName) {
-    if (!fullName) return '??';
-    const parts = fullName.trim().split(' ');
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-}
-
-// Format money
-function formatMoney(amount) {
-    if (!amount) return '0.00';
-    return parseFloat(amount).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-
-// Clear filters
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('propertyFilter').value = '';
-    document.getElementById('statusFilter').value = '';
-    document.getElementById('sortSelect').value = 'name_asc';
-    filterTenants();
-}
-
-// View tenant details
-function viewTenant(id) {
-    window.location.href = `details.html?id=${id}`;
-}
-
-// Edit tenant
-function editTenant(id) {
-    window.location.href = `edit.html?id=${id}`;
-}
-
-// Delete tenant
-function deleteTenant(id, name) {
-    tenantToDelete = id;
-    document.getElementById('deleteTenantName').textContent = name;
-    deleteModal.show();
-}
-
-// Confirm delete
-async function confirmDelete() {
-    if (!tenantToDelete) return;
-
-    const btn = document.getElementById('confirmDeleteBtn');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
-
-    try {
-        const token = getAuthToken();
-        
-        const response = await fetch(`${API_URL}/tenants/${tenantToDelete}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            deleteModal.hide();
-            await loadTenants();
+    // Load properties for filter
+    async function loadProperties() {
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
             
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success alert-dismissible fade show';
-            alert.innerHTML = `
-                ✅ Tenant deleted successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            if (!token) {
+                console.log('❌ No token found, redirecting to login');
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            console.log('Fetching properties from:', API_CONFIG.BASE_URL + '/api/properties');
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('✅ Response status:', response.status);
+
+            if (response.status === 401) {
+                console.log('❌ Unauthorized - clearing storage and redirecting');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            if (!response.ok) {
+                console.warn('⚠️ Failed to load properties, continuing anyway');
+                return;
+            }
+
+            const result = await response.json();
+            console.log(' Properties response:', result);
+            
+            // Handle different response formats
+            const properties = result.data || result.properties || result || [];
+            console.log(' Properties array:', properties);
+
+            const select = document.getElementById('propertyFilter');
+            if (select) {
+                // Clear existing options except the first one
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                
+                properties.forEach(property => {
+                    const propertyId = property.property_id || property.id;
+                    const propertyName = property.property_name || property.name || 'Unknown Property';
+                    
+                    const option = document.createElement('option');
+                    option.value = propertyId;
+                    option.textContent = propertyName;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading properties:', error);
+        }
+    }
+
+    // Load tenants from API
+    async function loadTenants() {
+        const loadingState = document.getElementById('loadingState');
+        
+        if (loadingState) {
+            loadingState.style.display = 'block';
+            loadingState.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading tenants...</p>
+                </div>
             `;
-            document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
-            
-            setTimeout(() => alert.remove(), 3000);
-        } else {
-            throw new Error('Failed to delete tenant');
         }
-    } catch (error) {
-        console.error('Error deleting tenant:', error);
-        alert('Failed to delete tenant. Please try again.');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        tenantToDelete = null;
+
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
+            
+            if (!token) {
+                console.log(' No token found, redirecting to login');
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            console.log(' Fetching tenants from:', API_CONFIG.BASE_URL + '/api/tenants');
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/tenants`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log(' Response status:', response.status);
+
+            if (response.status === 401) {
+                console.log(' Unauthorized - clearing storage and redirecting');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log(' Tenants response:', result);
+            
+            // Handle different response formats
+            allTenants = result.data || result.tenants || result || [];
+            console.log(' Tenants array:', allTenants);
+            
+            filteredTenants = [...allTenants];
+            
+            updateStats();
+            sortAndDisplayTenants();
+            
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('❌ Error loading tenants:', error);
+            if (loadingState) {
+                loadingState.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                        <h3 class="mt-3">Error Loading Tenants</h3>
+                        <p class="text-muted">${error.message}</p>
+                        <button class="btn btn-primary" onclick="loadTenants()">
+                            <i class="fas fa-redo me-2"></i>Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
     }
-}
-    </script>
+
+    // Update statistics
+    function updateStats() {
+        const total = allTenants.length;
+        const active = allTenants.filter(t => t.is_active).length;
+        const occupied = allTenants.filter(t => t.unit_id).length;
+        
+        const now = new Date();
+        const thisMonth = allTenants.filter(t => {
+            const leaseDate = new Date(t.lease_start_date || t.move_in_date);
+            return leaseDate.getMonth() === now.getMonth() && 
+                   leaseDate.getFullYear() === now.getFullYear();
+        }).length;
+
+        const totalTenantsEl = document.getElementById('totalTenants');
+        const activeTenantsEl = document.getElementById('activeTenants');
+        const occupiedUnitsEl = document.getElementById('occupiedUnits');
+        const newThisMonthEl = document.getElementById('newThisMonth');
+
+        if (totalTenantsEl) totalTenantsEl.textContent = total;
+        if (activeTenantsEl) activeTenantsEl.textContent = active;
+        if (occupiedUnitsEl) occupiedUnitsEl.textContent = occupied;
+        if (newThisMonthEl) newThisMonthEl.textContent = thisMonth;
+    }
+
+    // Filter tenants
+    function filterTenants() {
+        const searchInput = document.getElementById('searchInput');
+        const propertyFilter = document.getElementById('propertyFilter');
+        const statusFilter = document.getElementById('statusFilter');
+
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const propertyId = propertyFilter ? propertyFilter.value : '';
+        const status = statusFilter ? statusFilter.value : '';
+
+        console.log(' Applying filters:', { searchTerm, propertyId, status });
+
+        filteredTenants = allTenants.filter(tenant => {
+            const matchesSearch = !searchTerm || 
+                (tenant.full_name && tenant.full_name.toLowerCase().includes(searchTerm)) ||
+                (tenant.email && tenant.email.toLowerCase().includes(searchTerm)) ||
+                (tenant.phone && tenant.phone.toLowerCase().includes(searchTerm)) ||
+                (tenant.unit_number && tenant.unit_number.toLowerCase().includes(searchTerm));
+
+            const matchesProperty = !propertyId || tenant.property_id == propertyId;
+            const matchesStatus = !status || 
+                (status === 'active' && tenant.is_active) ||
+                (status === 'inactive' && !tenant.is_active);
+
+            return matchesSearch && matchesProperty && matchesStatus;
+        });
+
+        sortAndDisplayTenants();
+    }
+
+    // Sort and display tenants
+    function sortAndDisplayTenants() {
+        const sortSelect = document.getElementById('sortSelect');
+        const sortBy = sortSelect ? sortSelect.value : 'name_asc';
+
+        filteredTenants.sort((a, b) => {
+            switch(sortBy) {
+                case 'name_asc':
+                    return (a.full_name || '').localeCompare(b.full_name || '');
+                case 'name_desc':
+                    return (b.full_name || '').localeCompare(a.full_name || '');
+                case 'date_newest':
+                    return new Date(b.move_in_date || 0) - new Date(a.move_in_date || 0);
+                case 'date_oldest':
+                    return new Date(a.move_in_date || 0) - new Date(b.move_in_date || 0);
+                case 'rent_high':
+                    return (b.rent_amount || 0) - (a.rent_amount || 0);
+                case 'rent_low':
+                    return (a.rent_amount || 0) - (b.rent_amount || 0);
+                default:
+                    return 0;
+            }
+        });
+
+        displayTenants();
+    }
+
+    // Display tenants
+    function displayTenants() {
+        const container = document.getElementById('tenantsList');
+        const emptyState = document.getElementById('emptyState');
+        const resultsInfo = document.getElementById('resultsInfo');
+
+        if (!container) {
+            console.error(' tenantsList container not found');
+            return;
+        }
+
+        if (resultsInfo) {
+            resultsInfo.textContent = `Showing ${filteredTenants.length} of ${allTenants.length} tenants`;
+        }
+
+        if (filteredTenants.length === 0) {
+            container.innerHTML = '';
+            if (emptyState) {
+                emptyState.style.display = 'block';
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-users text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                        <h3 class="mt-3">No Tenants Found</h3>
+                        <p class="text-muted">Try adjusting your filters or add a new tenant</p>
+                        <button class="btn btn-success" onclick="window.location.href='add.html'">
+                            <i class="fas fa-plus me-2"></i>Add Tenant
+                        </button>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        if (emptyState) emptyState.style.display = 'none';
+        
+        console.log(`Displaying ${filteredTenants.length} tenants`);
+        
+        container.innerHTML = filteredTenants.map(tenant => {
+            const tenantId = tenant.tenant_id || tenant.id;
+            
+            return `
+                <div class="tenant-card" onclick="viewTenant(${tenantId})">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div class="d-flex align-items-start flex-grow-1">
+                            <div class="tenant-avatar">
+                                ${getInitials(tenant.full_name)}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="tenant-name">${tenant.full_name || 'N/A'}</div>
+                                <div class="tenant-unit">
+                                    <i class="fas fa-building me-1"></i>${tenant.property_name || 'No Property'} - 
+                                    <i class="fas fa-door-open me-1"></i>${tenant.unit_number || 'No Unit'}
+                                </div>
+                                <div class="mt-2">
+                                    <div class="tenant-info-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <span>${tenant.email || 'N/A'}</span>
+                                    </div>
+                                    <div class="tenant-info-item">
+                                        <i class="fas fa-phone"></i>
+                                        <span>${tenant.phone || 'N/A'}</span>
+                                    </div>
+                                    <div class="tenant-info-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Move-in: ${tenant.move_in_date ? new Date(tenant.move_in_date).toLocaleDateString() : 'N/A'}</span>
+                                    </div>
+                                    ${tenant.rent_balance && parseFloat(tenant.rent_balance) > 0 ? `
+                                    <div class="tenant-info-item">
+                                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                                        <span class="text-danger">Balance: KES ${formatMoney(tenant.rent_balance)}</span>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column align-items-end gap-2">
+                            <span class="status-badge ${tenant.is_active ? 'status-active' : 'status-inactive'}">
+                                ${tenant.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                            ${tenant.deposit_paid ? `
+                            <small class="text-muted">Deposit: KES ${formatMoney(tenant.deposit_paid)}</small>
+                            ` : ''}
+                            <div class="action-buttons" onclick="event.stopPropagation()">
+                                <button class="btn-action btn-whatsapp" 
+                                        onclick='openWhatsAppModal(${JSON.stringify(tenant).replace(/'/g, "&apos;")})' 
+                                        title="Send WhatsApp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </button>
+                                <button class="btn-action btn-view" onclick="viewTenant(${tenantId})" 
+                                        title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-action btn-edit" onclick="editTenant(${tenantId})" 
+                                        title="Edit Tenant">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-action btn-delete" onclick="deleteTenant(${tenantId}, '${(tenant.full_name || '').replace(/'/g, "&apos;")}')" 
+                                        title="Delete Tenant">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Open WhatsApp modal
+    function openWhatsAppModal(tenant) {
+        if (typeof WhatsAppService !== 'undefined' && WhatsAppService.openModal) {
+            WhatsAppService.openModal(tenant);
+        } else {
+            console.error('WhatsApp service not loaded');
+            alert('WhatsApp service is not available. Please check if whatsapp-service.js is loaded correctly.');
+        }
+    }
+
+    // Get initials from name
+    function getInitials(fullName) {
+        if (!fullName) return '??';
+        const parts = fullName.trim().split(' ');
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    // Format money
+    function formatMoney(amount) {
+        if (!amount) return '0.00';
+        return parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Clear filters
+    function clearFilters() {
+        const searchInput = document.getElementById('searchInput');
+        const propertyFilter = document.getElementById('propertyFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const sortSelect = document.getElementById('sortSelect');
+
+        if (searchInput) searchInput.value = '';
+        if (propertyFilter) propertyFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (sortSelect) sortSelect.value = 'name_asc';
+        
+        console.log(' Filters cleared');
+        filterTenants();
+    }
+
+    // View tenant details
+    function viewTenant(id) {
+        console.log('Viewing tenant:', id);
+        window.location.href = `details.html?id=${id}`;
+    }
+
+    // Edit tenant
+    function editTenant(id) {
+        console.log('Editing tenant:', id);
+        window.location.href = `edit.html?id=${id}`;
+    }
+
+    // Delete tenant
+    function deleteTenant(id, name) {
+        console.log(' Delete requested for tenant:', id, name);
+        tenantToDelete = id;
+        const deleteTenantName = document.getElementById('deleteTenantName');
+        if (deleteTenantName) {
+            deleteTenantName.textContent = name;
+        }
+        if (deleteModal) {
+            deleteModal.show();
+        }
+    }
+
+    // Confirm delete
+    async function confirmDelete() {
+        if (!tenantToDelete) return;
+
+        const btn = document.getElementById('confirmDeleteBtn');
+        if (!btn) return;
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+
+        try {
+            const token = getToken(); // ✅ Use getToken() from auth.js
+            
+            console.log(' Deleting tenant:', tenantToDelete);
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/tenants/${tenantToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 401) {
+                console.log('❌ Unauthorized - redirecting to login');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            if (response.ok) {
+                if (deleteModal) deleteModal.hide();
+                
+                console.log(' Tenant deleted successfully');
+                
+                // Reload tenants
+                await loadTenants();
+                
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    ✅ Tenant deleted successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.insertBefore(alert, container.firstChild);
+                }
+                
+                setTimeout(() => alert.remove(), 3000);
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error('❌ Error deleting tenant:', error);
+            alert('Failed to delete tenant: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            tenantToDelete = null;
+        }
+    }
+</script>
 </body>
 </html>
