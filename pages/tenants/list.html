@@ -570,8 +570,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../js/auth.js"></script>
 <!-- WhatsApp Integration -->
-<script src="../../js/WHATSAPP-SERVICE/whatsapp-service.js"></script>
-
+<script src="../../js/WHATSAPP-SERVICE/whatsapp-service.js" onerror="console.error('Failed to load WhatsApp service')"></script>
 <script>
     // Protect page using auth.js
     if (!protectPage()) {
@@ -620,6 +619,26 @@
         loadTenants();
         setupEventListeners();
     });
+   
+// Fallback WhatsApp function
+function openWhatsAppModal(tenant) {
+    if (typeof WhatsAppService !== 'undefined') {
+        WhatsAppService.openModal(tenant);
+    } else {
+        // Simple fallback - direct WhatsApp link
+        let phone = (tenant.phone || '').replace(/[^\d+]/g, '');
+        if (phone.startsWith('0')) phone = '+254' + phone.substring(1);
+        if (!phone.startsWith('+')) phone = '+254' + phone;
+        
+        if (!phone || phone === '+254') {
+            alert('No phone number available for this tenant.');
+            return;
+        }
+        
+        const msg = `Hello ${tenant.full_name}, this is a message regarding ${tenant.property_name} - Unit ${tenant.unit_number}.`;
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+}
 
     // Setup event listeners
     function setupEventListeners() {
