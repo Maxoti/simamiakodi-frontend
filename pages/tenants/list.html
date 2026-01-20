@@ -883,115 +883,154 @@ function openWhatsAppModal(tenant) {
 
         displayTenants();
     }
+// Display tenants - UPDATED WITH DIRECT WHATSAPP
+function displayTenants() {
+    const container = document.getElementById('tenantsList');
+    const emptyState = document.getElementById('emptyState');
+    const resultsInfo = document.getElementById('resultsInfo');
 
-    // Display tenants
-    function displayTenants() {
-        const container = document.getElementById('tenantsList');
-        const emptyState = document.getElementById('emptyState');
-        const resultsInfo = document.getElementById('resultsInfo');
+    if (!container) {
+        console.error('❌ tenantsList container not found');
+        return;
+    }
 
-        if (!container) {
-            console.error(' tenantsList container not found');
-            return;
+    if (resultsInfo) {
+        resultsInfo.textContent = `Showing ${filteredTenants.length} of ${allTenants.length} tenants`;
+    }
+
+    if (filteredTenants.length === 0) {
+        container.innerHTML = '';
+        if (emptyState) {
+            emptyState.style.display = 'block';
+        } else {
+            container.innerHTML = `
+                <div class="empty-state text-center py-5">
+                    <i class="fas fa-users text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                    <h3 class="mt-3">No Tenants Found</h3>
+                    <p class="text-muted">Try adjusting your filters or add a new tenant</p>
+                    <button class="btn btn-success" onclick="window.location.href='add.html'">
+                        <i class="fas fa-plus me-2"></i>Add Tenant
+                    </button>
+                </div>
+            `;
         }
+        return;
+    }
 
-        if (resultsInfo) {
-            resultsInfo.textContent = `Showing ${filteredTenants.length} of ${allTenants.length} tenants`;
-        }
-
-        if (filteredTenants.length === 0) {
-            container.innerHTML = '';
-            if (emptyState) {
-                emptyState.style.display = 'block';
-            } else {
-                container.innerHTML = `
-                    <div class="empty-state text-center py-5">
-                        <i class="fas fa-users text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
-                        <h3 class="mt-3">No Tenants Found</h3>
-                        <p class="text-muted">Try adjusting your filters or add a new tenant</p>
-                        <button class="btn btn-success" onclick="window.location.href='add.html'">
-                            <i class="fas fa-plus me-2"></i>Add Tenant
-                        </button>
-                    </div>
-                `;
-            }
-            return;
-        }
-
-        if (emptyState) emptyState.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'none';
+    
+    console.log(`✅ Displaying ${filteredTenants.length} tenants`);
+    
+    container.innerHTML = filteredTenants.map(tenant => {
+        const tenantId = tenant.tenant_id || tenant.id;
         
-        console.log(`Displaying ${filteredTenants.length} tenants`);
-        
-        container.innerHTML = filteredTenants.map(tenant => {
-            const tenantId = tenant.tenant_id || tenant.id;
-            
-            return `
-                <div class="tenant-card" onclick="viewTenant(${tenantId})">
-                    <div class="d-flex align-items-start justify-content-between">
-                        <div class="d-flex align-items-start flex-grow-1">
-                            <div class="tenant-avatar">
-                                ${getInitials(tenant.full_name)}
+        return `
+            <div class="tenant-card" onclick="viewTenant(${tenantId})">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div class="d-flex align-items-start flex-grow-1">
+                        <div class="tenant-avatar">
+                            ${getInitials(tenant.full_name)}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="tenant-name">${tenant.full_name || 'N/A'}</div>
+                            <div class="tenant-unit">
+                                <i class="fas fa-building me-1"></i>${tenant.property_name || 'No Property'} - 
+                                <i class="fas fa-door-open me-1"></i>${tenant.unit_number || 'No Unit'}
                             </div>
-                            <div class="flex-grow-1">
-                                <div class="tenant-name">${tenant.full_name || 'N/A'}</div>
-                                <div class="tenant-unit">
-                                    <i class="fas fa-building me-1"></i>${tenant.property_name || 'No Property'} - 
-                                    <i class="fas fa-door-open me-1"></i>${tenant.unit_number || 'No Unit'}
+                            <div class="mt-2">
+                                <div class="tenant-info-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>${tenant.email || 'N/A'}</span>
                                 </div>
-                                <div class="mt-2">
-                                    <div class="tenant-info-item">
-                                        <i class="fas fa-envelope"></i>
-                                        <span>${tenant.email || 'N/A'}</span>
-                                    </div>
-                                    <div class="tenant-info-item">
-                                        <i class="fas fa-phone"></i>
-                                        <span>${tenant.phone || 'N/A'}</span>
-                                    </div>
-                                    <div class="tenant-info-item">
-                                        <i class="fas fa-calendar"></i>
-                                        <span>Move-in: ${tenant.move_in_date ? new Date(tenant.move_in_date).toLocaleDateString() : 'N/A'}</span>
-                                    </div>
-                                    ${tenant.rent_balance && parseFloat(tenant.rent_balance) > 0 ? `
-                                    <div class="tenant-info-item">
-                                        <i class="fas fa-exclamation-triangle text-danger"></i>
-                                        <span class="text-danger">Balance: KES ${formatMoney(tenant.rent_balance)}</span>
-                                    </div>
-                                    ` : ''}
+                                <div class="tenant-info-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>${tenant.phone || 'N/A'}</span>
                                 </div>
+                                <div class="tenant-info-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>Move-in: ${tenant.move_in_date ? new Date(tenant.move_in_date).toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                                ${tenant.rent_balance && parseFloat(tenant.rent_balance) > 0 ? `
+                                <div class="tenant-info-item">
+                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                    <span class="text-danger">Balance: KES ${formatMoney(tenant.rent_balance)}</span>
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
-                        <div class="d-flex flex-column align-items-end gap-2">
-                            <span class="status-badge ${tenant.is_active ? 'status-active' : 'status-inactive'}">
-                                ${tenant.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                            ${tenant.deposit_paid ? `
-                            <small class="text-muted">Deposit: KES ${formatMoney(tenant.deposit_paid)}</small>
-                            ` : ''}
-                            <div class="action-buttons" onclick="event.stopPropagation()">
-                                <button class="btn-action btn-whatsapp" 
-                                        onclick='openWhatsAppModal(${JSON.stringify(tenant).replace(/'/g, "&apos;")})' 
-                                        title="Send WhatsApp">
-                                    <i class="fab fa-whatsapp"></i>
-                                </button>
-                                <button class="btn-action btn-view" onclick="viewTenant(${tenantId})" 
-                                        title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn-action btn-edit" onclick="editTenant(${tenantId})" 
-                                        title="Edit Tenant">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn-action btn-delete" onclick="deleteTenant(${tenantId}, '${(tenant.full_name || '').replace(/'/g, "&apos;")}')" 
-                                        title="Delete Tenant">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-2">
+                        <span class="status-badge ${tenant.is_active ? 'status-active' : 'status-inactive'}">
+                            ${tenant.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                        ${tenant.deposit_paid ? `
+                        <small class="text-muted">Deposit: KES ${formatMoney(tenant.deposit_paid)}</small>
+                        ` : ''}
+                        <div class="action-buttons" onclick="event.stopPropagation()">
+                            <button class="btn-action btn-whatsapp" 
+                                    onclick='sendWhatsAppDirect(${JSON.stringify(tenant).replace(/'/g, "&apos;")})' 
+                                    title="Send WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <button class="btn-action btn-view" onclick="viewTenant(${tenantId})" 
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-action btn-edit" onclick="editTenant(${tenantId})" 
+                                    title="Edit Tenant">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteTenant(${tenantId}, '${(tenant.full_name || '').replace(/'/g, "&apos;")}')" 
+                                    title="Delete Tenant">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-            `;
-        }).join('');
+            </div>
+        `;
+    }).join('');
+}
+
+// Add this new function - Simple direct WhatsApp (no server needed)
+function sendWhatsAppDirect(tenant) {
+    let phone = (tenant.phone || '').replace(/[^\d+]/g, '');
+    
+    if (!phone) {
+        alert('No phone number available for this tenant.');
+        return;
     }
+    
+    // Convert Kenyan numbers (0xxx to +254xxx)
+    if (phone.startsWith('0')) {
+        phone = '+254' + phone.substring(1);
+    } else if (!phone.startsWith('+')) {
+        phone = '+254' + phone;
+    }
+    
+    // Create message
+    const tenantName = tenant.full_name || 'Tenant';
+    const propertyName = tenant.property_name || 'your property';
+    const unitNumber = tenant.unit_number || 'N/A';
+    const rentAmount = tenant.rent_amount ? formatMoney(tenant.rent_amount) : 'N/A';
+    
+    const message = `Hello ${tenantName},
+
+This is a message regarding ${propertyName} - Unit ${unitNumber}.
+
+Monthly Rent: KES ${rentAmount}
+
+If you have any questions, feel free to reach out.
+
+Thank you!
+- Simamiakodi Management`;
+    
+    // Open WhatsApp Web/App
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    
+    console.log(' Opening WhatsApp:', phone);
+    window.open(whatsappUrl, '_blank');
+}
 
     // Open WhatsApp modal
     function openWhatsAppModal(tenant) {
