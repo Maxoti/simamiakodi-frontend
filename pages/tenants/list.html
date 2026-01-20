@@ -12,10 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <style>
-        body {
-            background: #f8f9fa;
-        }
-         /* WhatsApp Button Style */
+    body {
+        background: #f8f9fa;
+    }
+    
+    /* WhatsApp Button Style */
     .btn-whatsapp {
         background: #25D366 !important;
         color: white !important;
@@ -35,241 +36,368 @@
         transform: scale(1.1);
     }
 
-        .page-header {
-            background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
-            color: white;
-            padding: 30px 0;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+    .page-header {
+        background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
+        color: white;
+        padding: 30px 0;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
 
-        .stats-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-            height: 100%;
-        }
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.3s;
+        height: 100%;
+    }
 
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
 
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
 
-        .stats-number {
-            font-size: 32px;
-            font-weight: 700;
-            margin: 10px 0 5px 0;
-        }
+    .stats-number {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 10px 0 5px 0;
+    }
 
-        .stats-label {
-            color: #6c757d;
-            font-size: 14px;
-            font-weight: 500;
-        }
+    .stats-label {
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+    }
 
+    .content-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+
+    .search-filter-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
+    }
+
+    .tenant-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+        cursor: pointer;
+        overflow: visible;
+    }
+
+    .tenant-card:hover {
+        border-color: #6f42c1;
+        box-shadow: 0 5px 20px rgba(111, 66, 193, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .tenant-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 600;
+        margin-right: 20px;
+        flex-shrink: 0;
+    }
+
+    .tenant-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 5px;
+    }
+
+    .tenant-unit {
+        color: #6f42c1;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .tenant-info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .tenant-info-item span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
+    }
+
+    .status-badge {
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d1f4e0;
+        color: #0f6938;
+    }
+
+    .status-inactive {
+        background: #ffe5e5;
+        color: #c41e3a;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        flex-shrink: 0;
+    }
+
+    .btn-view {
+        background: #e7f3ff;
+        color: #0066cc;
+    }
+
+    .btn-view:hover {
+        background: #0066cc;
+        color: white;
+    }
+
+    .btn-edit {
+        background: #fff4e5;
+        color: #ff8c00;
+    }
+
+    .btn-edit:hover {
+        background: #ff8c00;
+        color: white;
+    }
+
+    .btn-delete {
+        background: #ffe5e5;
+        color: #dc3545;
+    }
+
+    .btn-delete:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 80px;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 60px;
+    }
+
+    .back-button {
+        color: white;
+        text-decoration: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.2);
+        transition: all 0.3s;
+    }
+
+    .back-button:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+
+    /* ============================================
+       MOBILE RESPONSIVE STYLES - FIXED VERSION
+       ============================================ */
+    @media (max-width: 768px) {
         .content-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            padding: 30px;
+            padding: 15px;
         }
 
         .search-filter-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
+            padding: 15px;
         }
 
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .btn-primary-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
-        }
-
-        .tenant-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 20px;
+        .stats-card {
             margin-bottom: 15px;
-            transition: all 0.3s;
-            cursor: pointer;
         }
 
-        .tenant-card:hover {
-            border-color: #6f42c1;
-            box-shadow: 0 5px 20px rgba(111, 66, 193, 0.15);
-            transform: translateY(-2px);
+        /* Tenant Card Mobile Layout */
+        .tenant-card {
+            padding: 15px;
+        }
+
+        /* Stack main sections vertically */
+        .tenant-card > div {
+            display: flex;
+            flex-direction: column !important;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* Top section: Avatar + Info */
+        .tenant-card .d-flex.align-items-start.flex-grow-1 {
+            flex-direction: row !important;
+            width: 100%;
         }
 
         .tenant-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 600;
-            margin-right: 20px;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            margin-right: 12px;
         }
 
         .tenant-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 5px;
+            font-size: 16px;
+            margin-bottom: 3px;
         }
 
         .tenant-unit {
-            color: #6f42c1;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
         }
 
         .tenant-info-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #6c757d;
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        /* Bottom section: Status + Actions */
+        .tenant-card .d-flex.flex-column.align-items-end {
+            align-items: flex-start !important;
+            width: 100%;
+            gap: 10px;
         }
 
         .status-badge {
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 5px;
         }
 
-        .status-active {
-            background: #d1f4e0;
-            color: #0f6938;
+        .tenant-card small.text-muted {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 13px;
         }
 
-        .status-inactive {
-            background: #ffe5e5;
-            color: #c41e3a;
-        }
-
+        /* Action buttons in horizontal row */
         .action-buttons {
-            display: flex;
+            flex-direction: row !important;
             gap: 8px;
+            width: 100%;
+            justify-content: flex-start;
         }
 
         .btn-action {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
+            width: 40px;
+            height: 40px;
         }
 
-        .btn-view {
-            background: #e7f3ff;
-            color: #0066cc;
+        .btn-whatsapp {
+            width: 40px !important;
+            height: 40px !important;
+        }
+    }
+
+    /* Extra small devices (portrait phones) */
+    @media (max-width: 480px) {
+        .tenant-card {
+            padding: 12px;
         }
 
-        .btn-view:hover {
-            background: #0066cc;
-            color: white;
+        .tenant-avatar {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+            margin-right: 10px;
         }
 
-        .btn-edit {
-            background: #fff4e5;
-            color: #ff8c00;
+        .tenant-name {
+            font-size: 15px;
         }
 
-        .btn-edit:hover {
-            background: #ff8c00;
-            color: white;
+        .tenant-unit {
+            font-size: 12px;
         }
 
-        .btn-delete {
-            background: #ffe5e5;
-            color: #dc3545;
+        .tenant-info-item {
+            font-size: 12px;
         }
 
-        .btn-delete:hover {
-            background: #dc3545;
-            color: white;
+        .status-badge {
+            font-size: 11px;
+            padding: 4px 12px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
+        .btn-action,
+        .btn-whatsapp {
+            width: 36px !important;
+            height: 36px !important;
+            font-size: 14px;
         }
-
-        .empty-state-icon {
-            font-size: 80px;
-            color: #dee2e6;
-            margin-bottom: 20px;
-        }
-
-        .loading-spinner {
-            text-align: center;
-            padding: 60px;
-        }
-
-        .back-button {
-            color: white;
-            text-decoration: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.2);
-            transition: all 0.3s;
-        }
-
-        .back-button:hover {
-            background: rgba(255,255,255,0.3);
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .tenant-card {
-                padding: 15px;
-            }
-
-            .tenant-avatar {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-                margin-right: 15px;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
-    </style>
-    <link rel="stylesheet" href="../../CSS/mobile-nav.css">
+    }
+</style>
+<link rel="stylesheet" href="../../CSS/mobile-nav.css">
 </head>
 <body>
     <!-- Page Header -->
