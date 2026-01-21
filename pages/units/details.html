@@ -359,14 +359,12 @@
 <script src="../../js/auth.js"></script>
 
 <script>
-    // Protect page using auth.js
     if (!protectPage()) {
-        console.log('🔒 Access denied');
+        console.log(' Access denied');
     }
 
     let currentUnit = null;
 
-    // Load unit details on page load
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const unitId = urlParams.get('id');
@@ -379,13 +377,12 @@
         loadUnitDetails(unitId);
     });
 
-    // Load unit details from API
     async function loadUnitDetails(id) {
         try {
-            const token = getToken(); // ✅ Use getToken() from auth.js
+            const token = getToken();
             
             if (!token) {
-                console.log('🔒 No token found, redirecting to login');
+                console.log(' No token found, redirecting to login');
                 window.location.href = '/pages/auth/login.html';
                 return;
             }
@@ -400,10 +397,10 @@
                 }
             });
 
-            console.log('📊 Response status:', response.status);
+            console.log(' Response status:', response.status);
 
             if (response.status === 401) {
-                console.log('❌ Unauthorized - clearing storage and redirecting');
+                console.log(' Unauthorized - clearing storage and redirecting');
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.href = '/pages/auth/login.html';
@@ -415,40 +412,52 @@
             }
 
             const result = await response.json();
-            console.log('✅ Unit data:', result);
+            console.log('Unit data received:', result);
             
             currentUnit = result.data || result.unit || result;
+            
+            console.log(' Current unit object:', currentUnit);
 
             displayUnitDetails(currentUnit);
             
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('unitContent').style.display = 'block';
         } catch (error) {
-            console.error('❌ Error loading unit:', error);
+            console.error(' Error loading unit:', error);
             showError();
         }
     }
 
-    // Display unit details
     function displayUnitDetails(unit) {
-        // Header
-        document.getElementById('unitName').textContent = unit.unit_number || 'Unnamed Unit';
+        console.log(' Displaying unit details:', unit);
+        
+        // Header - Unit Name
+        const unitNameEl = document.getElementById('unitName');
+        if (unitNameEl) {
+            unitNameEl.textContent = unit.unit_number || 'Unnamed Unit';
+        }
         
         // Status badge
         const statusBadge = document.getElementById('unitStatus');
-        statusBadge.textContent = unit.is_occupied ? 'Occupied' : 'Vacant';
-        statusBadge.className = `status-badge ${unit.is_occupied ? 'occupied' : 'vacant'}`;
+        if (statusBadge) {
+            statusBadge.textContent = unit.is_occupied ? 'Occupied' : 'Vacant';
+            statusBadge.className = `status-badge ${unit.is_occupied ? 'occupied' : 'vacant'}`;
+        }
 
         // Property link
         if (unit.property_name) {
-            document.getElementById('propertyName').textContent = unit.property_name;
+            const propertyNameEl = document.getElementById('propertyName');
+            if (propertyNameEl) {
+                propertyNameEl.textContent = unit.property_name;
+            }
+            
             const propertyLink = document.getElementById('propertyLink');
             if (propertyLink) {
                 propertyLink.href = `../properties/details.html?id=${unit.property_id}`;
             }
         }
 
-        // Statistics
+        // Statistics cards
         const bedroomsEl = document.getElementById('bedrooms');
         if (bedroomsEl) {
             bedroomsEl.textContent = unit.bedrooms || 0;
@@ -461,25 +470,33 @@
         
         const rentEl = document.getElementById('rent');
         if (rentEl) {
-            rentEl.textContent = `KES ${formatMoney(unit.rent)}`;
+            rentEl.textContent = `KES ${formatMoney(unit.monthly_rent)}`;
         }
 
-        // Basic Information
+        // Basic Information section
         const basicInfo = document.getElementById('basicInfo');
         if (basicInfo) {
             basicInfo.innerHTML = `
                 <div class="info-row">
                     <div class="info-label">Unit ID:</div>
-                    <div class="info-value">#${unit.unit_id || unit.id}</div>
+                    <div class="info-value">#${unit.unit_id}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Unit Number:</div>
                     <div class="info-value">${unit.unit_number || 'N/A'}</div>
                 </div>
+                ${unit.unit_type ? `
                 <div class="info-row">
-                    <div class="info-label">Floor:</div>
-                    <div class="info-value">${unit.floor || 'N/A'}</div>
+                    <div class="info-label">Unit Type:</div>
+                    <div class="info-value">${unit.unit_type}</div>
                 </div>
+                ` : ''}
+                ${unit.house_type ? `
+                <div class="info-row">
+                    <div class="info-label">House Type:</div>
+                    <div class="info-value">${unit.house_type}</div>
+                </div>
+                ` : ''}
                 <div class="info-row">
                     <div class="info-label">Bedrooms:</div>
                     <div class="info-value">${unit.bedrooms || 0}</div>
@@ -490,11 +507,11 @@
                 </div>
                 <div class="info-row">
                     <div class="info-label">Square Footage:</div>
-                    <div class="info-value">${unit.square_footage ? unit.square_footage + ' sq ft' : 'N/A'}</div>
+                    <div class="info-value">${unit.square_feet ? unit.square_feet + ' sq ft' : 'N/A'}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Monthly Rent:</div>
-                    <div class="info-value">KES ${formatMoney(unit.rent)}</div>
+                    <div class="info-value">KES ${formatMoney(unit.monthly_rent)}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Status:</div>
@@ -521,12 +538,13 @@
             `;
         }
 
-        // Tenant Information (if occupied)
+        // Tenant Information section (if occupied)
         const tenantSection = document.getElementById('tenantSection');
         const tenantInfo = document.getElementById('tenantInfo');
         
         if (tenantSection && tenantInfo && unit.is_occupied && unit.tenant_name) {
             tenantSection.style.display = 'block';
+            
             tenantInfo.innerHTML = `
                 <div class="info-row">
                     <div class="info-label">Tenant Name:</div>
@@ -544,16 +562,16 @@
                     <div class="info-value"><a href="tel:${unit.tenant_phone}">${unit.tenant_phone}</a></div>
                 </div>
                 ` : ''}
-                ${unit.lease_start || unit.lease_start_date ? `
+                ${unit.lease_start_date ? `
                 <div class="info-row">
                     <div class="info-label">Lease Start:</div>
-                    <div class="info-value">${formatDate(unit.lease_start || unit.lease_start_date)}</div>
+                    <div class="info-value">${formatDate(unit.lease_start_date)}</div>
                 </div>
                 ` : ''}
-                ${unit.lease_end || unit.lease_end_date ? `
+                ${unit.lease_end_date ? `
                 <div class="info-row">
                     <div class="info-label">Lease End:</div>
-                    <div class="info-value">${formatDate(unit.lease_end || unit.lease_end_date)}</div>
+                    <div class="info-value">${formatDate(unit.lease_end_date)}</div>
                 </div>
                 ` : ''}
             `;
@@ -561,20 +579,19 @@
             tenantSection.style.display = 'none';
         }
 
-        // Setup buttons
+        // Setup action buttons
         const editBtn = document.getElementById('editBtn');
         const deleteBtn = document.getElementById('deleteBtn');
         
         if (editBtn) {
-            editBtn.onclick = () => editUnit(unit.unit_id || unit.id);
+            editBtn.onclick = () => editUnit(unit.unit_id);
         }
         
         if (deleteBtn) {
-            deleteBtn.onclick = () => deleteUnit(unit.unit_id || unit.id, unit.unit_number);
+            deleteBtn.onclick = () => deleteUnit(unit.unit_id, unit.unit_number);
         }
     }
 
-    // Format money
     function formatMoney(amount) {
         if (!amount) return '0.00';
         return parseFloat(amount).toLocaleString('en-US', {
@@ -583,7 +600,6 @@
         });
     }
 
-    // Format date
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
@@ -594,19 +610,17 @@
         });
     }
 
-    // Edit unit
     function editUnit(id) {
         console.log(' Editing unit:', id);
         window.location.href = `edit.html?id=${id}`;
     }
 
-    // Delete unit
     function deleteUnit(id, unitNumber) {
         console.log(' Delete requested for unit:', id, unitNumber);
         
         const deleteUnitName = document.getElementById('deleteUnitName');
         if (deleteUnitName) {
-            deleteUnitName.textContent = unitNumber;
+            deleteUnitName.textContent = unitNumber || 'this unit';
         }
         
         const deleteModal = document.getElementById('deleteModal');
@@ -621,17 +635,15 @@
                 };
             }
         } else {
-            // Fallback if modal doesn't exist
             if (confirm(`Are you sure you want to delete unit ${unitNumber}?`)) {
                 confirmDelete(id);
             }
         }
     }
 
-    // Confirm delete
     async function confirmDelete(id) {
         try {
-            const token = getToken(); // ✅ Use getToken() from auth.js
+            const token = getToken();
             
             console.log(' Deleting unit:', id);
             
@@ -644,7 +656,7 @@
             });
 
             if (response.status === 401) {
-                console.log(' Unauthorized - redirecting to login');
+                console.log('❌ Unauthorized - redirecting to login');
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.href = '/pages/auth/login.html';
@@ -659,8 +671,8 @@
                     bootstrap.Modal.getInstance(deleteModal)?.hide();
                 }
                 
-                console.log(' Unit deleted successfully');
-                alert(' Unit deleted successfully!');
+                console.log('✅ Unit deleted successfully');
+                alert('✅ Unit deleted successfully!');
                 window.location.href = 'list.html';
             } else {
                 throw new Error(result.error || result.message || 'Failed to delete unit');
@@ -671,7 +683,6 @@
         }
     }
 
-    // Show error state
     function showError() {
         const loadingState = document.getElementById('loadingState');
         const errorState = document.getElementById('errorState');
@@ -682,3 +693,4 @@
 </script>
 </body>
 </html>
+
