@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Plan Details - SimamiaKodi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/style.css">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+        
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .detail-header {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+            text-align: right;
+        }
+        
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-overdue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .amount-display {
+            font-size: 36px;
+            font-weight: 700;
+            color: #7c3aed;
+            margin: 10px 0;
+        }
+        
+        .progress-section {
+            margin: 24px 0;
+        }
+        
+        .progress {
+            height: 24px;
+            border-radius: 12px;
+            background-color: #e9ecef;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            color: white;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-danger-custom {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger-custom:hover {
+            background: #c82333;
+        }
+        
+        .btn-secondary-custom {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary-custom:hover {
+            background: #5a6268;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .payment-history-table {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .payment-history-table th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .payment-history-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .amount-paid {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .amount-balance {
+            color: #dc3545;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="plans.html" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Plans
+                    </a>
+                    <h2 class="mt-3 mb-0">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                        Payment Plan Details
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-spinner">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading payment plan details...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="container" style="display: none;">
+        <div class="detail-card error-message">
+            <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+            <h4>Error Loading Payment Plan</h4>
+            <p class="text-muted" id="errorMessage">Unable to load payment plan details.</p>
+            <a href="plans.html" class="btn btn-primary mt-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Plans
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="container" style="display: none;">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Plan Overview -->
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <h4><i class="fas fa-info-circle me-2"></i>Plan Overview</h4>
+                    </div>
+                    
+                    <div class="text-center mb-4">
+                        <div class="amount-display" id="totalAmount">KES 0.00</div>
+                        <span id="statusBadge" class="status-badge">Active</span>
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Payment Progress</span>
+                            <span class="fw-bold" id="progressText">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%">
+                                0%
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="amount-paid" id="amountPaid">Paid: KES 0.00</small>
+                            <small class="amount-balance" id="amountBalance">Balance: KES 0.00</small>
+                        </div>
+                    </div>
+
+                    <div id="planDetails"></div>
+                </div>
+
+                <!-- Tenant Information -->
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <h4><i class="fas fa-user me-2"></i>Tenant Information</h4>
+                    </div>
+                    <div id="tenantDetails"></div>
+                </div>
+
+                <!-- Property Information -->
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <h4><i class="fas fa-building me-2"></i>Property Information</h4>
+                    </div>
+                    <div id="propertyDetails"></div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Actions -->
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <h5><i class="fas fa-cog me-2"></i>Actions</h5>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="action-btn btn-primary-custom" onclick="recordPayment()">
+                            <i class="fas fa-money-bill-wave"></i>
+                            Record Payment
+                        </button>
+                        <button class="action-btn btn-secondary-custom" onclick="editPlan()">
+                            <i class="fas fa-edit"></i>
+                            Edit Plan
+                        </button>
+                        <button class="action-btn btn-danger-custom" onclick="cancelPlan()">
+                            <i class="fas fa-times-circle"></i>
+                            Cancel Plan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <h5><i class="fas fa-chart-line me-2"></i>Quick Stats</h5>
+                    </div>
+                    <div id="quickStats"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="../../js/config.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../../js/auth.js"></script>
+    <script>
+        // Protect this page
+        protectPage();
+
+        const API_URL = `${API_CONFIG.BASE_URL}/api`;
+        let currentPlan = null;
+
+        // Get plan ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const planId = urlParams.get('id');
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!planId) {
+                showError('No payment plan ID provided');
+                return;
+            }
+            loadPlanDetails();
+        });
+
+        // Load plan details
+        async function loadPlanDetails() {
+            try {
+                const token = getToken();
+                
+                if (!token) {
+                    window.location.href = '../../login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/payment-plans/${planId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '../../login.html';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                currentPlan = result.data;
+
+                displayPlanDetails();
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading plan details:', error);
+                showError('Failed to load payment plan details. Please try again.');
+            }
+        }
+
+        // Display plan details
+        function displayPlanDetails() {
+            if (!currentPlan) return;
+
+            // Update page title
+            document.title = `Payment Plan - ${currentPlan.tenant_name || 'Unknown'} - SimamiaKodi`;
+
+            // Total amount and status
+            document.getElementById('totalAmount').textContent = `KES ${formatMoney(currentPlan.total_amount)}`;
+            
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = capitalizeFirst(currentPlan.status || 'active');
+            statusBadge.className = `status-badge ${getStatusClass(currentPlan.status)}`;
+
+            // Progress
+            const progress = calculateProgress(currentPlan);
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressBar').textContent = `${progress}%`;
+            document.getElementById('progressText').textContent = `${progress}%`;
+            document.getElementById('amountPaid').textContent = `Paid: KES ${formatMoney(currentPlan.amount_paid)}`;
+            document.getElementById('amountBalance').textContent = `Balance: KES ${formatMoney(currentPlan.balance)}`;
+
+            // Plan details
+            document.getElementById('planDetails').innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-calendar-alt"></i>
+                        Start Date
+                    </span>
+                    <span class="detail-value">${formatDate(currentPlan.start_date)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-calendar-check"></i>
+                        End Date
+                    </span>
+                    <span class="detail-value">${currentPlan.end_date ? formatDate(currentPlan.end_date) : 'Ongoing'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-clock"></i>
+                        Next Due Date
+                    </span>
+                    <span class="detail-value">${currentPlan.next_due_date ? formatDate(currentPlan.next_due_date) : 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Installment Amount
+                    </span>
+                    <span class="detail-value">KES ${formatMoney(currentPlan.installment_amount)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-sync-alt"></i>
+                        Frequency
+                    </span>
+                    <span class="detail-value">${capitalizeFirst(currentPlan.installment_frequency)}</span>
+                </div>
+                ${currentPlan.description ? `
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-sticky-note"></i>
+                        Description
+                    </span>
+                    <span class="detail-value">${escapeHtml(currentPlan.description)}</span>
+                </div>
+                ` : ''}
+            `;
+
+            // Tenant details
+            document.getElementById('tenantDetails').innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-user"></i>
+                        Tenant Name
+                    </span>
+                    <span class="detail-value">${escapeHtml(currentPlan.tenant_name || 'N/A')}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-phone"></i>
+                        Phone Number
+                    </span>
+                    <span class="detail-value">${escapeHtml(currentPlan.tenant_phone || 'N/A')}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-envelope"></i>
+                        Email
+                    </span>
+                    <span class="detail-value">${escapeHtml(currentPlan.tenant_email || 'N/A')}</span>
+                </div>
+            `;
+
+            // Property details
+            document.getElementById('propertyDetails').innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-building"></i>
+                        Property
+                    </span>
+                    <span class="detail-value">${escapeHtml(currentPlan.property_name || 'N/A')}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-door-open"></i>
+                        Unit Number
+                    </span>
+                    <span class="detail-value">${escapeHtml(currentPlan.unit_number || 'N/A')}</span>
+                </div>
+            `;
+
+            // Quick stats
+            const daysRemaining = currentPlan.end_date ? calculateDaysRemaining(currentPlan.end_date) : null;
+            const percentComplete = progress;
+            
+            document.getElementById('quickStats').innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-percentage"></i>
+                        Complete
+                    </span>
+                    <span class="detail-value">${percentComplete}%</span>
+                </div>
+                ${daysRemaining !== null ? `
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-calendar-day"></i>
+                        Days Remaining
+                    </span>
+                    <span class="detail-value">${daysRemaining} days</span>
+                </div>
+                ` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-hashtag"></i>
+                        Plan ID
+                    </span>
+                    <span class="detail-value">#${currentPlan.plan_id}</span>
+                </div>
+            `;
+        }
+                // Calculate progress
+        function calculateProgress(plan) {
+            if (!plan.total_amount || plan.total_amount === 0) return 0;
+            const paid = parseFloat(plan.amount_paid || 0);
+            const total = parseFloat(plan.total_amount);
+            return Math.min(Math.round((paid / total) * 100), 100);
+        }
+
+        // Calculate days remaining
+        function calculateDaysRemaining(endDate) {
+            const end = new Date(endDate);
+            const today = new Date();
+            const diffTime = end - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays > 0 ? diffDays : 0;
+        }
+
+        // Get status CSS class
+        function getStatusClass(status) {
+            const map = {
+                'active': 'status-active',
+                'completed': 'status-completed',
+                'overdue': 'status-overdue',
+                'cancelled': 'status-cancelled'
+            };
+            return map[status] || 'status-active';
+        }
+
+        // Format money
+        function formatMoney(amount) {
+            if (!amount && amount !== 0) return '0.00';
+            return parseFloat(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        // Capitalize first letter
+        function capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.toString().replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Show error
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // Action functions
+        function recordPayment() {
+            alert('Record Payment functionality - To be implemented');
+            // TODO: Navigate to payment recording page or open modal
+        }
+
+        function editPlan() {
+            alert('Edit Plan functionality - To be implemented');
+            // TODO: Navigate to edit page or open modal
+        }
+
+        function cancelPlan() {
+            if (confirm('Are you sure you want to cancel this payment plan?')) {
+                alert('Cancel Plan functionality - To be implemented');
+                // TODO: Call API to cancel plan
+            }
+        }
+    </script>
+</body>
+</html>
