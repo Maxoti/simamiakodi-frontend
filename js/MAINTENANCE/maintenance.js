@@ -9,8 +9,17 @@ let tenants = [];
 
 // ===== INITIALIZATION =====
 async function init() {
-    console.log('🔧 Initializing Maintenance Management System...');
+    console.log(' Initializing Maintenance Management System...');
     console.log('API Base URL:', API_BASE_URL);
+    
+    // Check authentication
+    const token = getToken();
+    if (!token) {
+        console.log(' No token found, redirecting to login');
+        window.location.href = '/pages/auth/login.html';
+        return;
+    }
+    
     showLoading(true);
     try {
         await loadAllData();
@@ -21,7 +30,7 @@ async function init() {
         updateStats();
         console.log('✅ Initialization complete');
     } catch (error) {
-        console.error('❌ Initialization failed:', error);
+        console.error(' Initialization failed:', error);
         showNotification('Failed to load data. Please refresh the page.', 'error');
     } finally {
         showLoading(false);
@@ -41,7 +50,22 @@ async function loadAllData() {
 async function fetchProperties() {
     try {
         console.log('🔄 Fetching properties...');
-        const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties`);
+        const token = getToken();
+        
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/properties`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.status === 401) {
+            console.log('Unauthorized - redirecting to login');
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/pages/auth/login.html';
+            return;
+        }
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
@@ -50,24 +74,39 @@ async function fetchProperties() {
         
         if (result && result.success && Array.isArray(result.data)) {
             properties = result.data;
-            console.log(`✅ Loaded ${properties.length} properties`, properties);
+            console.log(`✅ Loaded ${properties.length} properties`);
         } else if (Array.isArray(result)) {
             properties = result;
             console.log(`✅ Loaded ${properties.length} properties (direct array)`);
         } else {
             console.error('❌ Invalid format');
-            properties = getSampleProperties();
+            properties = [];
         }
     } catch (error) {
         console.error('❌ Fetch error:', error);
-        properties = getSampleProperties();
+        properties = [];
     }
 }
 
 async function fetchUnits() {
     try {
         console.log('🔄 Fetching units...');
-        const response = await fetch(`${API_CONFIG.BASE_URL}/api/units`);
+        const token = getToken();
+        
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/units`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.status === 401) {
+            console.log('❌ Unauthorized - redirecting to login');
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/pages/auth/login.html';
+            return;
+        }
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
@@ -76,51 +115,85 @@ async function fetchUnits() {
         
         if (result && result.success && Array.isArray(result.data)) {
             units = result.data;
-            console.log(`✅ Loaded ${units.length} units`, units);
+            console.log(`✅ Loaded ${units.length} units`);
         } else if (Array.isArray(result)) {
             units = result;
             console.log(`✅ Loaded ${units.length} units (direct array)`);
         } else {
-            console.error('❌ Invalid format');
-            units = getSampleUnits();
+            console.error(' Invalid format');
+            units = [];
         }
     } catch (error) {
-        console.error('❌ Fetch error:', error);
-        units = getSampleUnits();
+        console.error(' Fetch error:', error);
+        units = [];
     }
 }
 
 async function fetchTenants() {
     try {
-        console.log(' Fetching tenants...');
-        const response = await fetch(`${API_CONFIG.BASE_URL}/api/tenants`);
+        console.log('🔄 Fetching tenants...');
+        const token = getToken();
+        
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/tenants`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.status === 401) {
+            console.log(' Unauthorized - redirecting to login');
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/pages/auth/login.html';
+            return;
+        }
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const result = await response.json();
-        console.log(' Tenants response:', result);
+        console.log('📦 Tenants response:', result);
         
         if (result && result.success && Array.isArray(result.data)) {
             tenants = result.data;
-            console.log(`✅ Loaded ${tenants.length} tenants`, tenants);
+            console.log(`✅ Loaded ${tenants.length} tenants`);
         } else if (Array.isArray(result)) {
             tenants = result;
             console.log(`✅ Loaded ${tenants.length} tenants (direct array)`);
         } else {
             console.error('❌ Invalid format');
-            tenants = getSampleTenants();
+            tenants = [];
         }
     } catch (error) {
         console.error('❌ Fetch error:', error);
-        tenants = getSampleTenants();
+        tenants = [];
     }
 }
 
 async function fetchMaintenanceRequests() {
     try {
-        console.log(' Fetching maintenance requests...');
-        const response = await fetch(`${API_BASE_URL}`);
+        console.log('🔄 Fetching maintenance requests...');
+        const token = getToken();
+        
+        const response = await fetch(`${API_BASE_URL}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.status === 401) {
+            console.log('❌ Unauthorized - redirecting to login');
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/pages/auth/login.html';
+            return;
+        }
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
         const result = await response.json();
+        console.log('📦 Maintenance requests response:', result);
         
         if (result && result.success && Array.isArray(result.data)) {
             maintenanceRequests = result.data;
@@ -130,36 +203,11 @@ async function fetchMaintenanceRequests() {
             maintenanceRequests = [];
         }
         
-        console.log(` Loaded ${maintenanceRequests.length} maintenance requests`);
+        console.log(`✅ Loaded ${maintenanceRequests.length} maintenance requests`);
     } catch (error) {
         console.error('❌ Error:', error);
         maintenanceRequests = [];
     }
-}
-
-// ===== SAMPLE DATA (FALLBACK) =====
-function getSampleProperties() {
-    console.warn(' Using sample properties data');
-    return [
-        { property_id: 1, property_name: 'Sunset Apartments' },
-        { property_id: 2, property_name: 'Ocean View Complex' }
-    ];
-}
-
-function getSampleUnits() {
-    console.warn(' Using sample units data');
-    return [
-        { unit_id: 1, property_id: 1, unit_number: 'A-101' },
-        { unit_id: 2, property_id: 2, unit_number: 'B-205' }
-    ];
-}
-
-function getSampleTenants() {
-    console.warn(' Using sample tenants data');
-    return [
-        { tenant_id: 1, full_name: 'James Mwangi', unit_id: 1 },
-        { tenant_id: 2, full_name: 'Sarah Kimani', unit_id: 2 }
-    ];
 }
 
 // ===== DROPDOWN POPULATION =====
@@ -167,7 +215,7 @@ function populatePropertyDropdowns() {
     const propertySelect = document.getElementById('property');
     const filterProperty = document.getElementById('filterProperty');
     
-    console.log(' Populating dropdowns with', properties.length, 'properties');
+    console.log('📋 Populating dropdowns with', properties.length, 'properties');
     
     if (propertySelect) {
         propertySelect.innerHTML = '<option value="">Select Property</option>';
@@ -176,7 +224,6 @@ function populatePropertyDropdowns() {
             option.value = prop.property_id;
             option.textContent = prop.property_name || prop.name || `Property ${prop.property_id}`;
             propertySelect.appendChild(option);
-            console.log(`  ✓ Added: ${option.textContent}`);
         });
     }
     
@@ -197,7 +244,7 @@ function populateUnitDropdowns() {
     
     unitSelect.innerHTML = '<option value="">Select Unit</option>';
     
-    console.log(' Populating units dropdown...');
+    console.log('📋 Populating units dropdown...');
     units.forEach(unit => {
         const prop = properties.find(p => p.property_id === unit.property_id);
         const option = document.createElement('option');
@@ -214,7 +261,7 @@ function populateTenantDropdowns() {
     
     tenantSelect.innerHTML = '<option value="">Select Tenant</option>';
     
-    console.log(' Populating tenants dropdown...');
+    console.log('📋 Populating tenants dropdown...');
     tenants.forEach(tenant => {
         const option = document.createElement('option');
         option.value = tenant.tenant_id;
@@ -443,7 +490,7 @@ async function saveRequest() {
         closeModal();
     } catch (error) {
         console.error('Failed to save:', error);
-        showNotification('❌ Failed to save request: ' + error.message, 'error');
+        showNotification(' Failed to save request: ' + error.message, 'error');
     } finally {
         showLoading(false);
     }
@@ -455,14 +502,14 @@ async function deleteRequest(request_id) {
     showLoading(true);
     try {
         await apiCall(`/${request_id}`, 'DELETE');
-        showNotification('✅ Maintenance request deleted successfully', 'success');
+        showNotification(' Maintenance request deleted successfully', 'success');
         
         await fetchMaintenanceRequests();
         renderTable();
         updateStats();
     } catch (error) {
         console.error('Failed to delete:', error);
-        showNotification('❌ Failed to delete request: ' + error.message, 'error');
+        showNotification('Failed to delete request: ' + error.message, 'error');
     } finally {
         showLoading(false);
     }
@@ -471,15 +518,33 @@ async function deleteRequest(request_id) {
 // ===== API HELPER =====
 async function apiCall(endpoint, method = 'GET', body = null) {
     const url = `${API_BASE_URL}${endpoint}`;
+    const token = getToken();
+    
+    if (!token) {
+        console.log(' No token found, redirecting to login');
+        window.location.href = '/pages/auth/login.html';
+        throw new Error('No authentication token');
+    }
     
     const options = {
         method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
     };
 
     if (body) options.body = JSON.stringify(body);
 
     const response = await fetch(url, options);
+    
+    if (response.status === 401) {
+        console.log(' Unauthorized - redirecting to login');
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/pages/auth/login.html';
+        throw new Error('Unauthorized');
+    }
     
     if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
