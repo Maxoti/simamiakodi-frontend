@@ -787,7 +787,7 @@ function openWhatsAppModal(tenant) {
                 loadingState.style.display = 'none';
             }
         } catch (error) {
-            console.error('❌ Error loading tenants:', error);
+            console.error(' Error loading tenants:', error);
             if (loadingState) {
                 loadingState.innerHTML = `
                     <div class="empty-state">
@@ -1144,7 +1144,7 @@ Thank you!
                 const alert = document.createElement('div');
                 alert.className = 'alert alert-success alert-dismissible fade show';
                 alert.innerHTML = `
-                    ✅ Tenant deleted successfully!
+                     Tenant deleted successfully!
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 `;
                 const container = document.querySelector('.container');
