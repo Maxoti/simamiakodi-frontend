@@ -501,7 +501,7 @@ function setupEventListeners() {
 
 async function loadProperties() {
     try {
-        const token = getAuthToken();
+        const token = getToken();
         const response = await fetch(`${API_URL}/properties`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -532,7 +532,7 @@ async function loadProperties() {
 
 async function loadExpenses() {
     try {
-        const token = getAuthToken();
+        const token = getToken();
         const response = await fetch(`${API_URL}/expenses`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -794,7 +794,7 @@ async function confirmDelete() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
 
     try {
-        const token = getAuthToken();
+        const token = getToken();
         const response = await fetch(`${API_URL}/expenses/${expenseToDelete}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
