@@ -358,11 +358,8 @@
         </div>
     </div>
 <script src="../../js/config.js"></script>
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="../../js/auth.js"></script>
+        <script src="../../js/auth.js"></script>
    <script>
     protectPage();
 
@@ -414,7 +411,7 @@
 
     async function loadProperties() {
         try {
-            const token = getAuthToken();
+            const token = getToken();
             // ✅ CHANGED: Use API_URL instead of hardcoded URL
             const response = await fetch(`${API_URL}/properties`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -440,7 +437,7 @@
 
     async function loadUnits() {
         try {
-            const token = getAuthToken();
+            const token = getToken();
             // ✅ CHANGED: Use API_URL instead of hardcoded URL
             const response = await fetch(`${API_URL}/units`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -483,7 +480,7 @@
         document.getElementById('loadingText').textContent = 'Loading expense data...';
 
         try {
-            const token = getAuthToken();
+            const token = getToken();
             // ✅ CHANGED: Use API_URL instead of hardcoded URL
             const response = await fetch(`${API_URL}/expenses/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -561,7 +558,7 @@
             isEditMode ? 'Updating expense...' : 'Recording expense...';
 
         try {
-            const token = getAuthToken();
+            const token = getToken();
             // ✅ CHANGED: Use API_URL instead of hardcoded URL
             const url = isEditMode 
                 ? `${API_URL}/expenses/${expenseId}`
