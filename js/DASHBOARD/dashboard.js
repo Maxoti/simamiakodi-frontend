@@ -156,13 +156,14 @@ async function loadDashboard() {
             fetchAPI('/tenants'),
             fetchAPI('/payments'),
             fetchAPI('/expenses'),
+            fetchAPI('/payment-plans'),
             fetchAPI('/agents'),
             fetchAPI('/caretaker'),
             fetchAPI('/maintenance')
         ]);
         
         // Extract data, using empty array if any fetch failed
-        const [properties, units, tenants, payments, expenses, agents, caretakers, maintenance] = 
+        const [properties, units, tenants, payments, expenses, paymentPlans, agents, caretakers, maintenance] = 
             results.map(result => result.status === 'fulfilled' ? result.value : []);
         
         const endTime = performance.now();
@@ -173,6 +174,7 @@ async function loadDashboard() {
             tenants: tenants.length,
             payments: payments.length,
             expenses: expenses.length,
+            paymentPlans: paymentPlans.length,
             agents: agents.length,
             caretakers: caretakers.length,
             maintenance: maintenance.length
@@ -185,6 +187,7 @@ async function loadDashboard() {
             tenants,
             payments,
             expenses,
+            paymentPlans,
             agents,
             caretakers,
             maintenance
@@ -241,7 +244,7 @@ function updateDashboardStats(data) {
     updateStat('caretakers', activeCaretakers, `${activeCaretakers} on duty`);
     
     // Payment Plans (placeholder - update when you have payment plans endpoint)
-    updateStat('paymentPlans', '0', 'No active plans');
+    updateStat('paymentPlans', paymentPlans.length, `${paymentPlans.length} active plans`);
 }
 
 // ===== PAYMENTS TABLE =====
