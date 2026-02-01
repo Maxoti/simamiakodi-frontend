@@ -234,11 +234,10 @@ function updateDashboardStats(data) {
     const occupiedCount = units.filter(u => u.is_occupied || u.status === 'occupied').length;
     updateStat('monthlyRevenue', `KES ${formatMoney(revenue)}`, `From ${occupiedCount} units`);
     
-// Expenses
+
+    // Expenses
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    console.log('Expenses raw:', JSON.stringify(expenses));
-    console.log('currentMonth:', currentMonth);
     const monthExpenses = expenses
         .filter(e => e.expense_date && e.expense_date.startsWith(currentMonth))
         .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
