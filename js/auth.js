@@ -133,7 +133,7 @@ async function resetPassword(token, newPassword) {
     const res = await fetch(`${AUTH_API_URL}/reset-password`, {
       method: 'POST',
       headers: jsonHeaders(),
-      body: JSON.stringify({ token, new_password: newPassword })
+      body: JSON.stringify({ token, newPassword: newPassword })
     });
 
     const data = await res.json();
