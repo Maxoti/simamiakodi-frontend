@@ -125,6 +125,28 @@ async function loginUser(credentials, form) {
     hideLoading(form);
   }
 }
+// ======================================================
+// PASSWORD RESET
+// ======================================================
+async function resetPassword(token, newPassword) {
+  try {
+    const res = await fetch(`${AUTH_API_URL}/reset-password`, {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ token, new_password: newPassword })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Password reset failed');
+
+    showNotification('Password reset successful! Redirecting to login...', 'success');
+    setTimeout(() => (location.href = 'login.html'), 2000);
+
+  } catch (err) {
+    showNotification(err.message, 'error');
+    throw err;
+  }
+}
 
 // ======================================================
 // VALIDATION
