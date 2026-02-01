@@ -1,6 +1,3 @@
-// ===== CONFIGURATION =====
-const API_BASE = `${API_CONFIG.BASE_URL}/api`;
-
 // ===== AUTHENTICATION =====
 function getToken() {
     // Check for both 'token' and 'auth_token' for compatibility
@@ -20,6 +17,7 @@ function handleLogout() {
         localStorage.removeItem('user');
         localStorage.removeItem('user_data');
         localStorage.removeItem('remember_me');
+        
         window.location.href = 'pages/auth/login.html';
     }
 }
@@ -27,7 +25,7 @@ function handleLogout() {
 // ===== INITIALIZATION =====
 function initDashboard() {
     console.log('Initializing Dashboard...');
-    console.log('API Base URL:', API_BASE);
+    console.log('API Base URL:', API_CONFIG.BASE_URL);
     
     // Check if user is authenticated
     const token = getToken();
@@ -86,15 +84,30 @@ function formatMoney(amount) {
 
 function updateStat(id, value, change) {
     const el = document.getElementById(id);
-    const changeEl = document.getElementById(id.replace(/[A-Z]/g, m => m.toLowerCase()) + 'Change');
+    // Subtitle IDs don't follow a consistent pattern, so map them explicitly
+    const subtitleMap = {
+        totalProperties:  'propertiesChange',
+        activeTenants:    'tenantsChange',
+        monthlyRevenue:   'revenueChange',
+        pendingIssues:    'issuesChange',
+        activeAgents:     'agentsChange',
+        caretakers:       'caretakersChange',
+        monthlyExpenses:  'expensesChange',
+        paymentPlans:     'plansChange'
+    };
+    const changeEl = document.getElementById(subtitleMap[id]);
+
     if (el) el.textContent = value;
     if (changeEl) changeEl.textContent = change;
 }
 
 // ===== API FUNCTIONS =====
+// fetchAPI now accepts a full endpoint path (e.g. '/api/properties') from API_CONFIG.ENDPOINTS
+// and builds the URL using BASE_URL directly — no double '/api' prefix.
 async function fetchAPI(endpoint, timeoutMs = 5000) {
     try {
-        console.log(` Fetching: ${API_BASE}${endpoint}`);
+        const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+        console.log(` Fetching: ${url}`);
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -108,7 +121,7 @@ async function fetchAPI(endpoint, timeoutMs = 5000) {
             headers['Authorization'] = `Bearer ${token}`;
         }
         
-        const response = await fetch(`${API_BASE}${endpoint}`, {
+        const response = await fetch(url, {
             headers,
             signal: controller.signal
         });
@@ -149,17 +162,17 @@ async function loadDashboard() {
     const startTime = performance.now();
     
     try {
-        // Fetch all data in parallel with Promise.allSettled (won't fail if one API fails)
+        // Fetch all data in parallel using endpoints defined in config.js
         const results = await Promise.allSettled([
-            fetchAPI('/properties'),
-            fetchAPI('/units'),
-            fetchAPI('/tenants'),
-            fetchAPI('/payments'),
-            fetchAPI('/expenses'),
-            fetchAPI('/payment-plans'),
-            fetchAPI('/agents'),
-            fetchAPI('/caretaker'),
-            fetchAPI('/maintenance')
+            fetchAPI(API_CONFIG.ENDPOINTS.PROPERTIES),
+            fetchAPI(API_CONFIG.ENDPOINTS.UNITS),
+            fetchAPI(API_CONFIG.ENDPOINTS.TENANTS),
+            fetchAPI(API_CONFIG.ENDPOINTS.PAYMENTS),
+            fetchAPI(API_CONFIG.ENDPOINTS.EXPENSES),
+            fetchAPI(API_CONFIG.ENDPOINTS.PAYMENT_PLANS),
+            fetchAPI(API_CONFIG.ENDPOINTS.AGENTS),
+            fetchAPI(API_CONFIG.ENDPOINTS.CARETAKERS),
+            fetchAPI(API_CONFIG.ENDPOINTS.MAINTENANCE)
         ]);
         
         // Extract data, using empty array if any fetch failed
@@ -206,7 +219,7 @@ async function loadDashboard() {
 
 // ===== UPDATE STATISTICS =====
 function updateDashboardStats(data) {
-    const { properties, units, tenants, payments, expenses, agents, caretakers, maintenance } = data;
+    const { properties, units, tenants, payments, expenses, paymentPlans, agents, caretakers, maintenance } = data;
     
     // Properties
     updateStat('totalProperties', properties.length, `${properties.length} properties`);
@@ -243,7 +256,7 @@ function updateDashboardStats(data) {
     const activeCaretakers = caretakers.filter(c => c.is_active !== false && c.status !== 'inactive').length;
     updateStat('caretakers', activeCaretakers, `${activeCaretakers} on duty`);
     
-    // Payment Plans (placeholder - update when you have payment plans endpoint)
+    // Payment Plans
     updateStat('paymentPlans', paymentPlans.length, `${paymentPlans.length} active plans`);
 }
 
