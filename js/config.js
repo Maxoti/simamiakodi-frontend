@@ -210,12 +210,12 @@ const API_CONFIG = {
     AGENT_BY_ID: (id) => `/api/agents/${id}`,
     AGENT_PROPERTIES: (id) => `/api/agents/${id}/properties`,
     
-    CARETAKERS: '/api/caretakers',
-    CARETAKER_BY_ID: (id) => `/api/caretakers/${id}`,
-    CARETAKER_PROPERTIES: (id) => `/api/caretakers/${id}/properties`,
+    CARETAKERS: '/api/caretaker',
+    CARETAKER_BY_ID: (id) => `/api/caretaker/${id}`,
+    CARETAKER_PROPERTIES: (id) => `/api/caretaker/${id}/properties`,
     
-    PAYMENT_PLANS: '/api/paymentplans',
-    PAYMENT_PLAN_BY_ID: (id) => `/api/paymentplans/${id}`,
+    PAYMENT_PLANS: '/api/payment-plans',
+    PAYMENT_PLAN_BY_ID: (id) => `/api/payment-plans/${id}`,
     
     USERS: '/api/users',
     USER_BY_ID: (id) => `/api/users/${id}`,
